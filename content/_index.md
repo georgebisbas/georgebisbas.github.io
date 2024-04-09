@@ -65,7 +65,7 @@ sections:
         - title: Post-Doctoral Research Associate
           company: Imperial College, London, UK
           company_url: ''
-          company_logo: imperial
+          company_logo: imperial_logo.png
           location: London
           date_start: '2023-06-01'
           date_end: ''
@@ -81,7 +81,7 @@ sections:
         - title: Post-Doctoral Research Assistant
           company: Imperial College, London, UK
           company_url: ''
-          company_logo: imperial
+          company_logo: imperial_logo.png
           location: London
           date_start: '2022-05-01'
           date_end: '2023-05-31'
