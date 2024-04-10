@@ -2,6 +2,13 @@
 title: "Automated MPI code generation for scalable finite-difference solvers"
 authors:
 - admin
+- Rhodri Nelson
+- Mathias Louboutin
+- Paul H.J. Kelly
+- Fabio Luporini
+- Gerard J. Gorman
+
+
 date: "2024-03-27T00:00:00Z"
 doi: ""
 
@@ -27,8 +34,8 @@ tags:
 featured: false
 
 links:
-- name: Custom Link
-  url: http://example.org
+# - name: Custom Link
+#   url: http://example.org
 url_pdf: https://arxiv.org/abs/2312.13094
 # url_code: 'https://github.com/HugoBlox/hugo-blox-builder'
 # url_dataset: '#'
@@ -58,7 +65,7 @@ projects:
 #   Simply enter your slide deck's filename without extension.
 #   E.g. `slides: "example"` references `content/slides/example/index.md`.
 #   Otherwise, set `slides: ""`.
-slides: example
+# slides: example
 ---
 
 {{% callout note %}}
