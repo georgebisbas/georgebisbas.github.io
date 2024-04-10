@@ -251,7 +251,7 @@ sections:
       # phone: 888 888 88 88
       # appointment_url: 'https://calendly.com'
       address:
-        street: 450 Serra Mall
+        street: South Kensington Campus
         city: London
         region: UK
         postcode: 'SW7 2AZ, UK'
