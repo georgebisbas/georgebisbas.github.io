@@ -1,12 +1,12 @@
 ---
-title: "An example preprint / working paper"
+title: "Automated MPI code generation for scalable finite-difference solvers"
 authors:
 - admin
-date: "2019-04-07T00:00:00Z"
+date: "2024-03-27T00:00:00Z"
 doi: ""
 
 # Schedule page publish date (NOT publication's date).
-publishDate: "2017-01-01T00:00:00Z"
+publishDate: "2024-03-27T00:00:00Z"
 
 # Publication type.
 # Accepts a single type but formatted as a YAML list (for Hugo requirements).
@@ -17,10 +17,10 @@ publication_types: ["article"]
 publication: ""
 publication_short: ""
 
-abstract: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis posuere tellus ac convallis placerat. Proin tincidunt magna sed ex sollicitudin condimentum. Sed ac faucibus dolor, scelerisque sollicitudin nisi. Cras purus urna, suscipit quis sapien eu, pulvinar tempor diam. Quisque risus orci, mollis id ante sit amet, gravida egestas nisl. Sed ac tempus magna. Proin in dui enim. Donec condimentum, sem id dapibus fringilla, tellus enim condimentum arcu, nec volutpat est felis vel metus. Vestibulum sit amet erat at nulla eleifend gravida.
+abstract: Partial differential equations (PDEs) are crucial in modelling diverse phenomena across scientific disciplines, including seismic and medical imaging, computational fluid dynamics, image processing, and neural networks. Solving these PDEs on a large scale is an intricate and time-intensive process that demands careful tuning. This paper introduces automated code-generation techniques specifically tailored for distributed memory parallelism (DMP) to solve explicit finite-difference (FD) stencils at scale, a fundamental challenge in numerous scientific applications. These techniques are implemented and integrated into the Devito DSL and compiler framework, a well-established solution for automating the generation of FD solvers based on a high-level symbolic math input. Users benefit from modelling simulations at a high-level symbolic abstraction and effortlessly harnessing HPC-ready distributed-memory parallelism without altering their source code. This results in drastic reductions both in execution time and developer effort. While the contributions of this work are implemented and integrated within the Devito framework, the DMP concepts and the techniques applied are generally applicable to any FD solvers. A comprehensive performance evaluation of Devito's DMP via MPI demonstrates highly competitive weak and strong scaling on the Archer2 supercomputer, demonstrating the effectiveness of the proposed approach in meeting the demands of large-scale scientific simulations.
 
 # Summary. An optional shortened abstract.
-summary: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis posuere tellus ac convallis placerat. Proin tincidunt magna sed ex sollicitudin condimentum.
+# summary: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis posuere tellus ac convallis placerat. Proin tincidunt magna sed ex sollicitudin # condimentum.
 
 tags:
 - Source Themes
@@ -29,19 +29,19 @@ featured: false
 links:
 - name: Custom Link
   url: http://example.org
-url_pdf: http://arxiv.org/pdf/1512.04133v1
-url_code: 'https://github.com/HugoBlox/hugo-blox-builder'
-url_dataset: '#'
-url_poster: '#'
-url_project: ''
-url_slides: ''
-url_source: '#'
-url_video: '#'
+url_pdf: https://arxiv.org/abs/2312.13094
+# url_code: 'https://github.com/HugoBlox/hugo-blox-builder'
+# url_dataset: '#'
+url_poster: 'https://www.devitoproject.org/presentations/devito-mpi-poster.pdf'
+# url_project: ''
+# url_slides: ''
+# url_source: '#'
+# url_video: '#'
 
 # Featured image
 # To use, add an image named `featured.jpg/png` to your page's folder. 
 image:
-  caption: 'Image credit: [**Unsplash**](https://unsplash.com/photos/s9CC2SKySJM)'
+  # caption: 'Image credit: [**Unsplash**](https://unsplash.com/photos/s9CC2SKySJM)'
   focal_point: ""
   preview_only: false
 
