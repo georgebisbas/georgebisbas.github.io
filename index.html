@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -53,6 +52,33 @@
             text-align: center;
             margin-top: 20px;
         }
+        .skills-list, .awards-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5em;
+            list-style-type: disc;
+            margin-left: 20px;
+        }
+        .skills-list li, .awards-list li {
+            min-width: 200px;
+        }
+        .pub-list li {
+            margin-bottom: 0.7em;
+        }
+        @media (max-width: 600px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .profile-image {
+                margin-bottom: 10px;
+                margin-right: 0;
+            }
+            .skills-list, .awards-list {
+                flex-direction: column;
+                gap: 0.5em;
+            }
+        }
     </style>
 </head>
 <body>
@@ -64,34 +90,34 @@
                 <a href="https://georgebisbas.github.io/">Personal Webpage</a>
                 <a href="https://scholar.google.com/citations?user=TLBXIugAAAAJ&hl=en">Google Scholar</a>
                 <a href="https://github.com/georgebisbas">GitHub</a>
-                <a href="cv_bisbas_07jul25.pdf" target="_blank" type="application/pdf">Curriculum Vitae (PDF)</a>            
-           </div>
+                <a href="https://www.linkedin.com/in/george-bisbas-48a75288/" target="_blank">LinkedIn</a>
+                <a href="cv_bisbas_07jul25.pdf" target="_blank" type="application/pdf">Curriculum Vitae (PDF)</a>
+            </div>
         </div>
     </div>
 
     <div class="contact-info">
         <h2>Contact Information</h2>
         <p>
-            <strong>Email:</strong> g.bisbas18@imperial.ac.uk<br>
-            <strong>Address:</strong> South Kensington Campus, London, UK SW7 2AZ<br>
-            <strong>Location:</strong> Floor 2, Software Performance Optimisation Lab, William Penney Laboratory, Imperial College London
+            <strong>Email:</strong> georgios.a.bisbas@gmail.com<br>
         </p>
     </div>
 
-    <h2>Biography</h2>
-    <p>I am a Post-Doctoral Research Associate co-affiliated with the Department of Computing and the Department of Earth Science, Imperial College London. My research focuses on HPC and compiler intermediate representations (IRs), mainly on automating cache-level optimizations for stencil computations.</p>
-    
-    <p>I received my PhD from the Department of Computing, Imperial College London, in 2023. I hold an MSc in Advanced Computer and Communication Systems, specialization in Intelligent Systems - Methods of Computational Intelligence and Applications and a Diploma in Electrical and Computer Engineering from the Aristotle University of Thessaloniki.</p>
+    <h2>Professional Summary</h2>
+    <p>
+        I am a researcher and developer specializing in high-performance computing (HPC), compiler design, parallel programming, and domain-specific languages. My work focuses on scalable code generation, performance engineering, and open-source leadership, with a strong track record in cross-disciplinary collaboration and mentoring. I am passionate about delivering impactful solutions in HPC software engineering and compiler development.
+    </p>
 
-    <h2>Current Projects</h2>
+    <h2>A few words about me: </h2>
+    <p>
+        To be updated...
+    </p>
+
+    <h2>Selected Projects</h2>
     <ul>
-        <li><a href="https://github.com/devitocodes/devito">Devito Project</a></li>
-        <li><a href="https://github.com/xdslproject/xdsl">XDSL Project</a></li>
+        <li><a href="https://github.com/devitocodes/devito">Devito Project</a> – Temporal cache blocking for sparse operators, achieving up to 1.6x speedup for wave-propagation kernels.</li>
+        <li><a href="https://github.com/xdslproject/xdsl">XDSL Project</a> – Unified compilation stack for distributed-memory parallelism in stencil DSLs.</li>
     </ul>
-
-    <p>Previously, I worked as a researcher for the Faculty of Engineering, the Aristotle University of Thessaloniki, for the DigiPro project.</p>
-
-    <p>Please reach out if you are interested in cache optimizations, compiler IRs, loop-level transformations, parallel programming, shared- and distributed-memory parallelism, benchmarking, and reproducibility.</p>
 
     <h2>Research Interests</h2>
     <ul>
@@ -99,6 +125,8 @@
         <li>Computational Science</li>
         <li>Domain-specific Languages</li>
         <li>Compiler optimizations</li>
+        <li>Parallel Programming</li>
+        <li>Performance Engineering</li>
     </ul>
 
     <h2>Education</h2>
@@ -119,9 +147,9 @@
 
     <hr/>
     <footer>
-        <p>Last updated: December 2024</p>
+        <p>Last updated: July 2025</p>
         <div class="credits">
-            Webpage designed and created by Claude, an AI assistant by Anthropic
+            Webpage designed and created by George Bisbas. Template inspired by Claude, an AI assistant by Anthropic.
         </div>
     </footer>
 </body>
