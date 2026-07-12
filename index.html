@@ -4,51 +4,169 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>George Bisbas - Personal webpage</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230d1117'/%3E%3Ctext x='50' y='70' font-family='monospace' font-size='58' fill='%2339c5cf' text-anchor='middle'%3E%3E_%3C/text%3E%3C/svg%3E">
     <style>
+        :root {
+            --bg: #0d1117;
+            --bg-nav: rgba(13, 17, 23, 0.94);
+            --text: #e6edf3;
+            --text-muted: #8b949e;
+            --accent: #39c5cf;
+            --accent-soft: rgba(57, 197, 207, 0.12);
+            --amber: #e3b341;
+            --border: #21262d;
+            --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+            --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+        }
+        html {
+            scroll-behavior: smooth;
+        }
         body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            color: #333;
+            font-family: var(--sans);
+            line-height: 1.65;
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
         }
-        .header {
+        .page {
             display: flex;
-            align-items: center;
-            margin-bottom: 20px;
+            align-items: flex-start;
+            gap: 48px;
+            max-width: 1140px;
+            margin: 0 auto;
+            padding: 24px 20px;
         }
-        .profile-image {
-            width: 150px;
-            height: 150px;
-            object-fit: cover;
-            border-radius: 50%;
-            margin-right: 20px;
-            background-color: #f0f0f0;
+        .content {
+            flex: 1;
+            min-width: 0;
+            max-width: 720px;
         }
-        h1, h2 {
-            color: #2c3e50;
-        }
-        .links {
-            margin-top: 10px;
-        }
-        .links a {
-            margin-right: 10px;
-            color: #3498db;
+        a {
+            color: var(--accent);
             text-decoration: none;
         }
-        .links a:hover {
+        a:hover {
             text-decoration: underline;
         }
-        .contact-info {
-            background-color: #f9f9f9;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
+        h1, h2, h3 {
+            font-family: var(--mono);
+            color: var(--text);
+            letter-spacing: -0.01em;
+        }
+        h2 {
+            font-size: 1.3em;
+            margin-top: 2.2em;
+            padding-top: 1.4em;
+            border-top: 1px solid var(--border);
+            scroll-margin-top: 4.5rem;
+        }
+        h2::before {
+            content: "// ";
+            color: var(--text-muted);
+            font-weight: normal;
+        }
+        h3 {
+            font-size: 1.05em;
+            color: var(--accent);
+            margin-bottom: 0.5em;
+            scroll-margin-top: 4.5rem;
+        }
+        ul {
+            padding-left: 1.2em;
+        }
+        li::marker {
+            color: var(--accent);
+        }
+        .site-nav ul {
+            display: flex;
+            flex-direction: column;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            gap: 2px;
+        }
+        .site-nav a {
+            display: block;
+            font-family: var(--mono);
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-muted);
+            padding: 6px 10px;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+        .site-nav a:hover {
+            color: var(--accent);
+            background: var(--accent-soft);
+            text-decoration: none;
+        }
+        .sidebar {
+            position: sticky;
+            top: 24px;
+            width: 280px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+        .profile-block {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .profile-image {
+            width: 140px;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 50%;
+            background-color: var(--border);
+            border: 3px solid var(--accent);
+            box-shadow: 0 0 18px rgba(57, 197, 207, 0.25);
+        }
+        h1 {
+            font-size: 1.6em;
+            margin-bottom: 0.2em;
+        }
+        .subtitle {
+            font-family: var(--mono);
+            color: var(--text-muted);
+            font-size: 0.9em;
+            margin: 0 0 12px;
+        }
+        .links {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        .links a {
+            font-family: var(--mono);
+            font-size: 0.82em;
+            padding: 5px 10px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background: var(--accent-soft);
+        }
+        .links a:hover {
+            background: rgba(57, 197, 207, 0.22);
+            text-decoration: none;
+        }
+        .contact-line {
+            font-size: 0.85em;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+        .contact-line a {
+            color: var(--accent);
+        }
+        .highlight {
+            color: var(--amber);
+            font-weight: 600;
         }
         .credits {
             font-size: 0.8em;
-            color: #666;
+            color: var(--text-muted);
             text-align: center;
             margin-top: 20px;
         }
@@ -65,14 +183,99 @@
         .pub-list li {
             margin-bottom: 0.7em;
         }
+        .entry {
+            margin-bottom: 1.1em;
+        }
+        .entry-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 4px 16px;
+        }
+        .entry-title {
+            font-weight: 600;
+        }
+        .entry-date {
+            font-family: var(--mono);
+            font-size: 0.8em;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+        .entry-date .present {
+            color: var(--accent);
+            font-weight: 600;
+        }
+        .entry-sub {
+            font-size: 0.9em;
+            color: var(--text-muted);
+            margin: 0.1em 0 0.3em;
+        }
+        .ref-links {
+            display: block;
+            margin-top: 0.25em;
+            font-size: 0.82em;
+            color: var(--text-muted);
+        }
+        .ref-links a {
+            color: var(--accent);
+        }
+        hr {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin-top: 2.5em;
+        }
+        footer p {
+            color: var(--text-muted);
+        }
+        @media (max-width: 900px) {
+            .page {
+                flex-direction: column;
+                gap: 0;
+                padding: 0 20px 20px;
+            }
+            .sidebar {
+                position: static;
+                width: 100%;
+                gap: 0;
+            }
+            .profile-block {
+                flex-direction: row;
+                align-items: center;
+                gap: 20px;
+                margin: 24px 0 16px;
+            }
+            .links {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            .site-nav {
+                position: sticky;
+                top: 0;
+                z-index: 10;
+                background: var(--bg-nav);
+                backdrop-filter: blur(6px);
+                border-bottom: 1px solid var(--border);
+                margin: 0 -20px 20px;
+                padding: 0 20px;
+            }
+            .site-nav ul {
+                flex-direction: row;
+                overflow-x: auto;
+                gap: 4px;
+                padding: 10px 0;
+            }
+            .site-nav a {
+                white-space: nowrap;
+            }
+            .content {
+                max-width: none;
+            }
+        }
         @media (max-width: 600px) {
-            .header {
+            .profile-block {
                 flex-direction: column;
                 align-items: flex-start;
-            }
-            .profile-image {
-                margin-bottom: 10px;
-                margin-right: 0;
             }
             .skills-list, .awards-list {
                 flex-direction: column;
@@ -82,41 +285,52 @@
     </style>
 </head>
 <body>
-    <div class="header">
-        <img src="self.jpg" alt="George Bisbas" class="profile-image" placeholder="Add your personal image here">
-        <div>
-            <h1>George Bisbas (Georgios Bismpas)</h1>
-            <div class="links">
-                <a href="https://scholar.google.com/citations?user=TLBXIugAAAAJ&hl=en">Google Scholar</a>
-                <a href="https://github.com/georgebisbas">GitHub</a>
-                <a href="https://www.linkedin.com/in/george-bisbas-48a75288/" target="_blank">LinkedIn</a>
-                <a href="cv_bisbas_08aug25.pdf" target="_blank" type="application/pdf">Curriculum Vitae (PDF)</a>
+    <div class="page">
+    <aside class="sidebar">
+        <div class="profile-block">
+            <img src="self.jpg" alt="George Bisbas" class="profile-image">
+            <div class="identity">
+                <h1>George Bisbas (Georgios Bismpas)</h1>
+                <p class="subtitle">Senior Research Engineer @ Huawei — Compilers for HPC &amp; LLM Systems</p>
+                <div class="links">
+                    <a href="https://scholar.google.com/citations?user=TLBXIugAAAAJ&hl=en">Google Scholar</a>
+                    <a href="https://github.com/georgebisbas">GitHub</a>
+                    <a href="https://www.linkedin.com/in/george-bisbas-48a75288/" target="_blank">LinkedIn</a>
+                    <a href="https://x.com/GeorgeBisbas" target="_blank">Twitter / X</a>
+                    <a href="cv_bisbas_12july26.pdf" target="_blank" type="application/pdf">Curriculum Vitae (PDF)</a>
+                </div>
+                <p class="contact-line" id="contact">
+                    <a href="mailto:georgios.a.bisbas@gmail.com">georgios.a.bisbas@gmail.com</a><br>
+                    Zurich (Switzerland)
+                </p>
             </div>
         </div>
-    </div>
+        <nav class="site-nav">
+            <ul>
+                <li><a href="#about">About</a></li>
+                <li><a href="#experience">Experience</a></li>
+                <li><a href="#teaching">Teaching</a></li>
+                <li><a href="#projects">Projects</a></li>
+                <li><a href="#publications">Publications</a></li>
+                <li><a href="#talks">Talks</a></li>
+                <li><a href="#posters">Posters</a></li>
+                <li><a href="#service">Service</a></li>
+                <li><a href="#education">Education</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </aside>
 
-    <div class="contact-info">
-        <h2>Contact Information</h2>
-        <p>
-            <strong>Email:</strong> georgios.a.bisbas@gmail.com<br>
-        </p>
-    </div>
-
-    <h2>A few words about me:</h2>
+    <main class="content">
+    <h2 id="about">About Me</h2>
     <p>
-        I am a researcher and developer specializing in high-performance computing (HPC), compiler design, parallel programming, and domain-specific languages. My work focuses on scalable code generation, performance engineering, and open-source leadership, with a strong track record in cross-disciplinary collaboration and mentoring. I am passionate about delivering impactful solutions in HPC software engineering and compiler development.
+        Senior researcher and developer with 10 years of deep expertise in compiler design for high-performance computing (HPC) — spanning high-level DSL design and efficient compilation down to automated, HPC-ready code generation for scientific applications. Proven track record in scalable code generation, performance engineering, and open-source leadership. Experienced in cross-disciplinary collaboration and mentoring.
     </p>
-
-
-    <h2>Selected Projects</h2>
-    <ul>
-        <li><a href="https://github.com/devitocodes/devito">Devito Project</a>: See <a href="https://www.devitoproject.org/">www.devitoproject.org</a>  for more details </li>
-        <li><a href="https://xdsl.dev/">XDSL Project</a>: See <a href="https://github.com/xdslproject/xdsl">XDSL Project</a> for more details </li>
-    </ul>
 
     <h2>Research Interests</h2>
     <ul>
         <li>High Performance Computing (HPC)</li>
+        <li>Distributed Systems for LLM Training &amp; Inference</li>
         <li>Computational Science</li>
         <li>Domain-specific Languages</li>
         <li>Compiler optimizations</li>
@@ -124,28 +338,231 @@
         <li>Performance Engineering</li>
     </ul>
 
-    <h2>Education</h2>
+    <h2>Technical Skills</h2>
+    <ul class="skills-list">
+        <li><strong>Programming:</strong> Python, C, C++, MPI, OpenMP, CUDA, SYCL, OpenACC, Matlab (Expert); Julia, Java, Cilk, AVR/MIPS Assembly, Cerebras CSL (Proficient)</li>
+        <li><strong>Compiler/IR:</strong> MLIR, LLVM (familiar), Devito DSL, PyPTO (Huawei)</li>
+        <li><strong>HPC/DevOps/CI/CD:</strong> GitHub Actions, Travis, Jenkins, Slurm, PBS, Docker, Microsoft Azure, and HPC environments generally</li>
+        <li><strong>HPC Tooling:</strong> Intel VTune, Advisor, Trace Analyzer & Collector, NVIDIA Nsight (Compute, Systems), Likwid, documentation & tutorials</li>
+    </ul>
+
+    <h2>Application-Oriented Skills</h2>
     <ul>
+        <li><strong>LLM Training &amp; Inference Compiler Infrastructure:</strong> Compiler infrastructure enabling distributed training and inference (data, tensor, expert, sequence, and pipeline parallelism) of large-scale LLM models across multi-chip clusters — distributed computing abstractions, compiler IRs and lowerings, collective communication primitives (AllReduce, AllGather, ReduceScatter, etc.), DSL API design, and orchestration code generation.</li>
+        <li><strong>Seismic Imaging & Wave Propagation:</strong> High-fidelity seismic waveform simulation, inversion workflows, isotropic/acoustic/elastic/anisotropic/visco-acoustic/visco-elastic modeling, distributed-memory code generation, and temporal cache optimization within the Devito framework.</li>
+        <li><strong>Computational Science & Engineering:</strong> Scalable, production-quality software stacks (Devito, xDSL) and reproducible pipelines for PDE-based simulations supporting climate, fluid dynamics, and multiphysics modeling.</li>
+        <li><strong>3D Point Cloud Processing:</strong> Density-based clustering, feature-preserving data reduction for computer graphics, digital reconstruction, and smart manufacturing.</li>
+    </ul>
+
+    <h2 id="experience">Professional Experience</h2>
+    <ul>
+        <li class="entry">
+            <div class="entry-head">
+                <span class="entry-title">Senior Research Engineer, Huawei Research Center</span>
+                <span class="entry-date">Nov 2025 – <span class="present">Now</span></span>
+            </div>
+            <p class="entry-sub">Zurich, Switzerland</p>
+            <ul>
+                <li>Compiler &amp; runtime development for distributed training and inference on Ascend NPUs; contributing to Huawei's compiler ecosystem (PyPTO / simpler / pto-isa), building the multi-chip distributed communication stack that enables large-scale models (e.g. DeepSeek, MoE architectures) to train and serve across clusters of Ascend NPUs 910B/910C.</li>
+                <li>Designed and implemented distributed abstractions and compiler IRs/lowerings for collective communication primitives (AllReduce, Broadcast, AllGather, ReduceScatter, etc.) in PyPTO's DSL, runtime and ISA.</li>
+                <li>Contributed across the full compiler stack: DSL API design, distributed IR types and compiler passes, orchestration code generation, runtime integration, and performance benchmarking.</li>
+            </ul>
+        </li>
+        <li class="entry">
+            <div class="entry-head">
+                <span class="entry-title">Airman (Informatics), Hellenic Air Force</span>
+                <span class="entry-date">May 2025 – Nov 2025</span>
+            </div>
+            <p class="entry-sub">Larissa, Greece</p>
+            Six-month mandatory military service as required by the Greek government.
+        </li>
+        <li class="entry">
+            <div class="entry-head">
+                <span class="entry-title">Post-Doctoral Research Associate, Imperial College London</span>
+                <span class="entry-date">Jun 2023 – Mar 2025</span>
+            </div>
+            <div class="entry-head">
+                <span class="entry-title">Post-Doctoral Research Assistant, Imperial College London</span>
+                <span class="entry-date">May 2022 – Jun 2023</span>
+            </div>
+            <div class="entry-head">
+                <span class="entry-title">PhD Student, Imperial College London</span>
+                <span class="entry-date">Oct 2018 – Apr 2022</span>
+            </div>
+            <p>
+                Advanced compiler infrastructure and code generation for PDE-based applications; domain-specific optimizations and efficient distributed-memory parallelism; temporal cache blocking for sparse off-the-grid operators (up to 1.6× speedup); automated MPI code generation; unified compilation stack (XDSL/Devito) with MLIR-based pipelines. Also contributed (mostly supervising) an end-to-end framework bridging high-level DSLs with the wafer-scale Cerebras CSL architecture. PhD thesis: <em>Automated cache optimizations of stencil computations for partial differential equations</em>, supervised by Prof. P. H. J. Kelly.
+            </p>
+        </li>
+        <li class="entry">
+            <div class="entry-head">
+                <span class="entry-title">Research Assistant, Aristotle University of Thessaloniki</span>
+                <span class="entry-date">Nov 2017 – Oct 2018</span>
+            </div>
+            <a href="https://www.digi-pro.gr/">DigiPro project</a>: developed advanced Mean Shift clustering algorithms for 3D point cloud simplification in MATLAB and C/Cilk.
+        </li>
+    </ul>
+
+    <h2 id="teaching">Teaching Experience</h2>
+    <ul>
+        <li class="entry">
+            <div class="entry-head">
+                <span class="entry-title">Graduate Teaching Assistant, Imperial College London</span>
+                <span class="entry-date">Nov 2018 – Oct 2022</span>
+            </div>
+            <ul>
+                <li>Parallel Programming using MPI (ACSE-6)</li>
+                <li>Advanced Computer Architecture (COMP60001)</li>
+                <li>Compilers (COMP50006)</li>
+                <li>Performance Engineering (COMP60017)</li>
+                <li>Reasoning about Programs (COMP40006)</li>
+                <li>Second Year Laboratory (C++ Picture Processing / Pintos)</li>
+            </ul>
+        </li>
+        <li class="entry">
+            <div class="entry-head">
+                <span class="entry-title">DiRAC Training Course Mentor, UCL</span>
+                <span class="entry-date">Nov 2023</span>
+            </div>
+            <ul>
+                <li>Bash Shell, Version Control with Git, Principles of Software Engineering, Testing & Documenting Code, Principles of Code Scaling</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2 id="projects">Selected Projects</h2>
+    <h3>Compiler Infrastructure (Huawei)</h3>
+    <ul>
+        <li><a href="https://github.com/hw-native-sys/pypto">PyPTO</a>: compiler for distributed LLM training/inference on Ascend NPUs. <a href="https://github.com/hw-native-sys/pypto/pulls?q=is%3Apr+author%3Ageorgebisbas+is%3Aclosed+is%3Amerged">[My merged PRs]</a></li>
+        <li><a href="https://github.com/hw-native-sys/simpler">simpler</a>: runtime for the PyPTO compiler stack. <a href="https://github.com/hw-native-sys/simpler/pulls?q=is%3Apr+author%3Ageorgebisbas+is%3Aclosed+is%3Amerged">[My merged PRs]</a></li>
+        <li><a href="https://github.com/hw-native-sys/pto-isa">pto-isa</a>: virtual ISA underlying the PyPTO stack. <a href="https://github.com/hw-native-sys/pto-isa/pulls?q=is%3Apr+author%3Ageorgebisbas+is%3Aclosed">[My merged PRs]</a></li>
+        <li><a href="https://github.com/hw-native-sys/PTOAS">PTOAS</a>: assembler/optimizer for the PyPTO stack.</li>
+    </ul>
+    <h3>HPC Compilers (Devito / xDSL)</h3>
+    <ul>
+        <li><a href="https://github.com/devitocodes/devito">Devito Project</a>: DSL and compiler for finite-difference PDE solvers. <a href="https://github.com/devitocodes/devito/pulls?q=is%3Apr+author%3Ageorgebisbas+is%3Aclosed+is%3Amerged">[My merged PRs]</a></li>
+        <li><a href="https://xdsl.dev/">XDSL Project</a>: Extensible compiler framework built on MLIR. Lead Maintainer/Developer in <a href="https://github.com/xdslproject/devito/">xdslproject/devito</a>. See <a href="https://github.com/xdslproject/xdsl">xdslproject/xdsl</a>. <a href="https://github.com/xdslproject/xdsl/pulls?q=is%3Apr+is%3Aclosed+author%3Ageorgebisbas+is%3Amerged">[My merged PRs]</a></li>
+    </ul>
+    <h3>Personal Projects</h3>
+    <ul>
+        <li class="entry">
+            <div class="entry-head">
+                <span class="entry-title"><a href="https://greekprophet.gr">GreekProphet</a> — Owner / Developer / Maintainer</span>
+                <span class="entry-date">2026 – <span class="present">Now</span></span>
+            </div>
+            Probabilistic forecasting platform for the Greek Super League: a Monte Carlo-based forecasting engine with rating systems and score models for match outcomes and season trajectories, built end-to-end in Python (simulation engine, data pipelines, backend services, and deployment).
+        </li>
+    </ul>
+
+    <h2 id="publications">Publications</h2>
+    <h3>Conference Publications</h3>
+    <ul class="pub-list">
         <li>
-            <strong>PhD in High Performance, Embedded and Distributed Systems, 2023</strong><br>
-            Imperial College London
+            Nicolai Stawinoga*, David Katz*, Anton Lydike, Justs Zarins, Nick Brown, <strong>George Bisbas</strong>, Tobias Grosser (2026). <em>An MLIR Lowering Pipeline for Stencils at Wafer-Scale.</em> ASPLOS '26, Vol. 2, Article 1, 16 pages. (*equal contribution)
+            <span class="ref-links">[<a href="https://dl.acm.org/doi/10.1145/3779212.3790124">ACM</a>] [<a href="https://arxiv.org/abs/2601.17754">arXiv</a>]</span>
         </li>
         <li>
-            <strong>MSc in Intelligent Systems - Methods of Computational Intelligence and Applications, 2019</strong><br>
-            Aristotle University of Thessaloniki (AUTH)
+            <strong>George Bisbas</strong>, Rhodri Nelson, Mathias Louboutin, Fabio Luporini, Paul H.J. Kelly, Gerard Gorman (2024). <em>Automated MPI-X code generation for scalable finite-difference solvers.</em> IPDPS 2025, Milano, Italy, pp. 689–701. <span class="highlight">🏆 Finalist for IPDPS'25 Open Source Contribution Award.</span>
+            <span class="ref-links">[<a href="https://ieeexplore.ieee.org/document/11078556">IEEE</a>] [<a href="https://arxiv.org/abs/2312.13094">arXiv</a>] [<a href="https://github.com/georgebisbas/georgebisbas/blob/main/talks/ipdps25_mpix_bisbas.pdf">Slides</a>] [<a href="https://github.com/georgebisbas/georgebisbas/blob/main/posters/devito_mpiX_poster.pdf">Poster</a>]</span>
         </li>
         <li>
-            <strong>Dipl. Eng. in Electrical and Computer Engineering, 2017</strong><br>
-            Aristotle University of Thessaloniki (AUTH)
+            <strong>George Bisbas</strong>*, Anton Lydike*, Emilien Bauer*, Nick Brown*, Mathieu Fehr, Lawrence Mitchell, Gabriel Rodriguez-Canal, Maurice Jameson, Paul H.J. Kelly, Michel Steuwer, Tobias Grosser (2024). <em>A shared compilation stack for distributed-memory parallelism in stencil DSLs.</em> ASPLOS '24, Vol. 3, pp. 38–56. (*equal contribution)
+            <span class="ref-links">[<a href="https://dl.acm.org/doi/10.1145/3620666.3651344">ACM</a>] [<a href="https://arxiv.org/abs/2404.02218">arXiv</a>] [<a href="https://github.com/georgebisbas/georgebisbas/blob/main/talks/asplos24_xdsl_mpi.pdf">Slides</a>] [<a href="https://github.com/georgebisbas/georgebisbas/blob/main/posters/asplos24.pdf">Poster</a>]</span>
+        </li>
+        <li>
+            <strong>George Bisbas</strong>, Fabio Luporini, Mathias Louboutin, Rhodri Nelson, Gerard Gorman, Paul H.J. Kelly (2020). <em>Temporal blocking of finite-difference stencil operators with sparse "off-the-grid" sources.</em> IPDPS 2021, Portland, OR, USA, pp. 497–506.
+            <span class="ref-links">[<a href="https://doi.org/10.1109/IPDPS49936.2021.00058">IEEE</a>] [<a href="https://arxiv.org/abs/2010.10248">arXiv</a>] [<a href="https://github.com/georgebisbas/georgebisbas/blob/main/talks/ipdps21_bisbas_temporal.pdf">Slides</a>]</span>
+        </li>
+    </ul>
+    <h3>Workshop Publications</h3>
+    <ul class="pub-list">
+        <li>
+            Joao Speglich, Navjot Kukreja, <strong>George Bisbas</strong>, Atila Saraiva, Jan Hückelheim, Fabio Luporini, John Washbourne (2024). <em>Optimizing wavefield storage with high-speed media.</em> ESSA'24, IPDPSW.
+            <span class="ref-links">[<a href="https://ieeexplore.ieee.org/abstract/document/10596342">Paper</a>]</span>
+        </li>
+    </ul>
+    <h3>In Preparation / Submitted</h3>
+    <ul class="pub-list">
+        <li>Mathias Louboutin, Fabio Luporini, Philipp Witte, Rhodri Nelson, <strong>George Bisbas</strong>, Jan Thorbecke, Felix J. Herrmann, Gerard Gorman. <em>Scaling through abstractions – high-performance vectorial wave simulations for seismic inversion with Devito.</em>
+            <span class="ref-links">[<a href="https://arxiv.org/abs/2004.10519">arXiv</a>]</span>
+        </li>
+        <li>Rhodri Nelson, Fabio Luporini, Mathias Louboutin, <strong>George Bisbas</strong>, Gerard Gorman. <em>TheMatrix: An automated cross-platform benchmarking suite.</em> Submitted to JOSS.
+            <span class="ref-links">[<a href="https://github.com/devitocodes/thematrix/blob/master/documents/thematrix-joss/paper.pdf">GitHub</a>]</span>
+        </li>
+    </ul>
+
+    <h2 id="talks">Selected Talks & Presentations</h2>
+    <ul>
+        <li><strong>HiPEAC 2025</strong>, Barcelona — <em>A shared compilation stack for distributed-memory parallelism in stencil DSLs</em> <span class="ref-links">[<a href="https://github.com/georgebisbas/georgebisbas/blob/main/talks/bisbas_final_hipeac25.pdf">Slides</a>]</span></li>
+        <li><strong>PASC24</strong> — <em>A shared compilation stack for HPC stencil DSLs</em> (Minisymposium) <span class="ref-links">[<a href="https://github.com/georgebisbas/georgebisbas/blob/main/talks/pasc24_devito_xdsl.pdf">Slides</a>]</span></li>
+        <li><strong>SIAM CSE 2023</strong> — <em>Automated Temporal Blocking in the Devito Compiler</em> (MiniSymposium) <span class="ref-links">[<a href="https://github.com/georgebisbas/georgebisbas/blob/main/talks/cse23_MS243_TB.pdf">Slides</a>]</span></li>
+        <li><strong>OGHPC 2021</strong> — <em>Temporal blocking for wave propagation with sparse off-the-grid sources</em> <span class="ref-links">[<a href="https://www.youtube.com/watch?v=-yHL9MKla7c&t=42s">Video</a>]</span></li>
+        <li><strong>CPC21</strong>, Porto — <em>Temporal blocking of finite-difference stencil operators with sparse "off-the-grid" sources</em> <span class="ref-links">[<a href="https://github.com/georgebisbas/georgebisbas/blob/main/talks/CPC21_bisbas_upd.pdf">Slides</a>]</span></li>
+        <li><strong>DSL-HPC 2020</strong> — <em>Temporal blocking of finite-difference stencil operators with sparse non-grid-aligned sources and receivers in Devito</em> <span class="ref-links">[<a href="https://www.youtube.com/watch?v=w6kCRzIrrEA&t=11022s">Video</a>]</span></li>
+    </ul>
+
+    <h2 id="posters">Poster Presentations</h2>
+    <ul>
+        <li><strong>Rice Energy HPC 2024</strong> — <em>Automated MPI-X code generation for scalable finite-difference solvers</em> <span class="ref-links">[<a href="https://github.com/georgebisbas/georgebisbas/blob/main/posters/devito_mpi_poster.pdf">Poster</a>]</span></li>
+        <li><strong>SC 2019</strong> — <em>Accelerating real-world stencil computations using temporal blocking: handling sparse sources and receivers</em> <span class="ref-links">[<a href="https://github.com/georgebisbas/georgebisbas/blob/main/posters/temporal-sc19.pdf">Poster</a>]</span></li>
+    </ul>
+
+    <h2 id="service">Peer Reviewing Service</h2>
+    <h3>Conferences</h3>
+    <ul>
+        <li>Supercomputing Conference (SC) — Reproducibility Committee Member (2024, 2025)</li>
+        <li>Euro-Par 2025 — Program Committee Member</li>
+        <li>ICPP — Poster Committee Member (2024); Program Committee (2021)</li>
+        <li>JuliaCon Conference Proceedings — Reviewer</li>
+        <li>IMPACT 2024 — Reviewer</li>
+        <li>PPoPP 2020 — Artifact Evaluation Committee Member</li>
+        <li>JupyterCon 2020 — Proposal Community Reviewer</li>
+    </ul>
+    <h3>Journals</h3>
+    <ul>
+        <li>ACM Transactions on Parallel Computing — Reviewer (2025)</li>
+        <li>The Journal of Supercomputing, Springer — Reviewer</li>
+        <li>Future Generation Computer Systems, Elsevier — Reviewer</li>
+    </ul>
+
+    <h2 id="education">Education</h2>
+    <ul>
+        <li class="entry">
+            <div class="entry-head">
+                <span class="entry-title">PhD in High Performance, Embedded and Distributed Systems</span>
+                <span class="entry-date">2023</span>
+            </div>
+            <p class="entry-sub">Imperial College London</p>
+            <em>Thesis: Automated cache optimizations of stencil computations for partial differential equations</em> <span class="ref-links">[<a href="https://doi.org/10.25560/105949">Online</a>]</span><br>
+            Supervisor: Prof. P. H. J. Kelly (with F. Luporini, G. J. Gorman)
+        </li>
+        <li class="entry">
+            <div class="entry-head">
+                <span class="entry-title">MSc in Intelligent Systems — Methods of Computational Intelligence and Applications</span>
+                <span class="entry-date">2019</span>
+            </div>
+            <p class="entry-sub">Aristotle University of Thessaloniki (AUTH) — Grade: 9.59/10 (Distinction)</p>
+            <em>Thesis: On developing and accelerating point cloud simplification methods</em> <span class="ref-links">[<a href="https://ikee.lib.auth.gr/record/308235">Online (GR)</a>]</span><br>
+            Supervisor: Prof. N. P. Pitsianis
+        </li>
+        <li class="entry">
+            <div class="entry-head">
+                <span class="entry-title">Dipl. Eng. in Electrical and Computer Engineering</span>
+                <span class="entry-date">2017</span>
+            </div>
+            <p class="entry-sub">Aristotle University of Thessaloniki (AUTH) — Grade: 8.75/10 (Distinction)</p>
+            <em>Thesis: Forecast demand using Extended Discrete Fourier Transform</em> <span class="ref-links">[<a href="https://ikee.lib.auth.gr/record/292291">Online (GR)</a>]</span><br>
+            Supervisor: Prof. N. P. Pitsianis
         </li>
     </ul>
 
     <hr/>
     <footer>
-        <p>Last updated: August 2025</p>
+        <p>Last updated: July 2026</p>
         <div class="credits">
             Webpage designed and created by George Bisbas. Template inspired by Claude, an AI assistant by Anthropic.
         </div>
     </footer>
+    </main>
+    </div>
 </body>
 </html>
