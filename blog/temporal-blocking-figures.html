@@ -1,0 +1,2845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Temporal blocking with sparse off-the-grid sources — figure plate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Spectral:ital,wght@0,300;0,400;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --abyss:#071620;
+  --shelf:#0D2531;
+  --shelf-2:#123141;
+  --hair:#1E4457;
+  --bone:#EAF2F0;
+  --haze:#8FA9B4;
+  --grid:#4CC9D4;      /* spatial dimension, the FD grid */
+  --time:#9B8CFF;      /* temporal dimension, time tiles */
+  --src:#F2A03D;       /* sparse off-the-grid operators */
+  --alarm:#E8574B;     /* dependency violation */
+  --maxw:1180px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--abyss);color:var(--bone);
+  font-family:"Spectral",Georgia,serif;font-weight:300;font-size:17px;line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace}
+
+/* ---------- page frame ---------- */
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px}
+
+/* ---------- masthead ---------- */
+.mast{padding:72px 0 40px;border-bottom:1px solid var(--hair)}
+.eyebrow{
+  font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--haze);
+}
+.mast h1{
+  font-family:"Archivo",system-ui,sans-serif;font-weight:700;
+  font-size:clamp(29px,4.5vw,50px);line-height:1.03;letter-spacing:-.02em;
+  margin:20px 0 0;max-width:25ch;text-wrap:balance;
+}
+.mast h1 .hi{color:var(--src)}
+.standfirst{max-width:62ch;margin:26px 0 0;color:#C9DBE1;font-size:18.5px}
+.byline{margin-top:30px;display:flex;flex-wrap:wrap;gap:10px 28px;align-items:baseline}
+.byline .mono{font-size:12.5px;color:var(--haze);letter-spacing:.04em}
+.byline a{color:var(--grid);text-decoration:none;border-bottom:1px solid rgba(76,201,212,.35)}
+.byline a:hover{border-bottom-color:var(--grid)}
+
+/* ---------- colour key ---------- */
+.keystrip{
+  display:block;margin:0 0 26px;padding:14px 16px;
+  border:1px solid var(--hair);border-radius:3px;background:rgba(18,49,65,.34);
+}
+@media(min-width:1040px){.keystrip{display:none}}
+.key{display:flex;align-items:center;gap:9px;font-family:"IBM Plex Mono",monospace;
+  font-size:11px;color:var(--haze);letter-spacing:.05em}
+.swatch{width:12px;height:12px;border-radius:2px;flex:none}
+
+.railkey{margin-top:30px;padding-top:20px;border-top:1px solid var(--hair)}
+.rk-t{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--src);margin-bottom:14px}
+.railkey ul{list-style:none;margin:0;padding:0;display:grid;gap:11px}
+.railkey li{display:flex;align-items:flex-start;gap:9px}
+.railkey li .swatch{margin-top:3px}
+.railkey span{font-family:"IBM Plex Mono",monospace;font-size:10.5px;line-height:1.35;color:#CFE2E8}
+.railkey em{display:block;font-style:normal;color:#6E8B97;margin-top:2px}
+.rk-note{margin:16px 0 0;font-size:9.5px;line-height:1.5;color:#5A7C8B;
+  padding-top:12px;border-top:1px solid rgba(30,68,87,.7)}
+.ks-row{display:flex;flex-wrap:wrap;gap:10px 26px}
+.keystrip .key b{color:#CFE2E8;font-weight:500}
+.keystrip .rk-note{margin-top:12px;font-size:10px;border-top-color:rgba(30,68,87,.5)}
+
+/* ---------- layout ---------- */
+.body{display:grid;grid-template-columns:1fr;gap:0}
+@media(min-width:1040px){
+  .body{grid-template-columns:168px 1fr;gap:56px;align-items:start}
+  .index{position:sticky;top:40px;padding-top:64px}
+}
+.index{display:none}
+@media(min-width:1040px){.index{display:block}}
+.index ol{list-style:none;margin:0;padding:0;border-left:1px solid var(--hair)}
+.index li{margin:0}
+.index a{
+  display:block;padding:9px 0 9px 14px;margin-left:-1px;border-left:1px solid transparent;
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.06em;
+  color:var(--haze);text-decoration:none;line-height:1.4;
+}
+.index a:hover{color:var(--bone);border-left-color:var(--grid)}
+.index a.on{color:var(--bone);border-left-color:var(--src)}
+.index .n{color:var(--src)}
+
+/* ---------- plates ---------- */
+.plate{padding:72px 0;border-bottom:1px solid var(--hair)}
+.plate:last-of-type{border-bottom:0}
+.plate-head{display:flex;gap:18px;align-items:baseline;flex-wrap:wrap}
+.fignum{
+  font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.16em;
+  color:var(--src);flex:none;padding-top:6px;
+}
+.plate h2{
+  font-family:"Archivo",sans-serif;font-weight:600;letter-spacing:-.015em;
+  font-size:clamp(23px,3.1vw,33px);line-height:1.14;margin:0;max-width:24ch;text-wrap:balance;
+}
+.deck{max-width:68ch;margin:16px 0 0;color:#C4D7DE;text-wrap:pretty}
+.panel{
+  margin:34px 0 0;background:linear-gradient(180deg,var(--shelf) 0%,#0A1E29 100%);
+  border:1px solid var(--hair);border-radius:3px;padding:26px 22px;
+}
+@media(max-width:640px){.panel{padding:16px 12px}}
+.panel svg{display:block;width:100%;height:auto}
+.cap{
+  margin:20px 0 0;font-family:"Spectral",Georgia,serif;font-weight:300;
+  font-size:15.5px;line-height:1.62;color:#A6C0CA;max-width:70ch;text-wrap:pretty;
+}
+.cap + .cap{margin-top:14px}
+.cap .mono{font-size:13.5px;color:#CFE2E8}
+.cap em{color:#CFE2E8;font-style:italic}
+
+/* ---------- interactive control ---------- */
+.control{
+  margin-top:20px;padding:18px;border:1px solid var(--hair);border-radius:3px;
+  background:rgba(18,49,65,.45);
+}
+.control-row{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.control label{
+  font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--haze);flex:none;
+}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;background:transparent;flex:1 1 240px;min-width:180px;height:26px;margin:0;
+}
+input[type=range]::-webkit-slider-runnable-track{height:2px;background:var(--hair)}
+input[type=range]::-moz-range-track{height:2px;background:var(--hair)}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--src);
+  margin-top:-7px;border:0;cursor:grab;
+}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--src);border:0;cursor:grab}
+input[type=range]:focus-visible{outline:2px solid var(--grid);outline-offset:4px}
+.readout{
+  font-family:"IBM Plex Mono",monospace;font-size:20px;color:var(--src);flex:none;min-width:4ch;
+}
+.verdict{
+  margin-top:14px;font-family:"IBM Plex Mono",monospace;font-size:12.5px;line-height:1.6;
+  padding-left:14px;border-left:2px solid var(--alarm);color:#F2B9B4;
+}
+.verdict.ok{border-left-color:var(--grid);color:#9FE3E8}
+
+/* ---------- explainer aside ---------- */
+.aside{margin:30px 0 0;padding:22px 26px;border-left:2px solid var(--src);background:rgba(242,160,61,.045);max-width:70ch}
+.aside h4{
+  font-family:"Archivo",sans-serif;font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--src);font-weight:600;margin:0 0 12px;
+}
+.aside p{margin:0 0 12px;font-size:16.5px;color:#C9DBE1;line-height:1.6}
+.aside p:last-child{margin-bottom:0}
+
+/* ---------- playback bar ---------- */
+.playbar{
+  display:flex;gap:12px 14px;align-items:center;flex-wrap:wrap;
+  margin-top:18px;padding-top:16px;border-top:1px solid rgba(30,68,87,.6);
+}
+.btn{
+  appearance:none;background:transparent;border:1px solid var(--hair);border-radius:3px;
+  color:var(--haze);font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.06em;
+  padding:9px 15px;cursor:pointer;transition:background .15s,color .15s,border-color .15s;
+}
+.btn:hover{color:var(--bone);border-color:#37697F;background:rgba(76,201,212,.07)}
+.btn:focus-visible{outline:2px solid var(--grid);outline-offset:2px}
+.btn.primary{border-color:var(--src);color:var(--src)}
+.btn.primary:hover{background:rgba(242,160,61,.12)}
+.btn.primary.running{background:rgba(242,160,61,.18)}
+.speedlab{font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:#6E8B97}
+.status{font-size:11.5px;color:var(--haze);letter-spacing:.05em;margin-left:auto}
+.status.good{color:#8FE1E8}
+.status.bad{color:#F2B9B4}
+
+/* ---------- segmented control (fig 03) ---------- */
+.seg{display:inline-flex;border:1px solid var(--hair);border-radius:3px;overflow:hidden;flex:none}
+.seg button{
+  appearance:none;background:transparent;border:0;border-right:1px solid var(--hair);
+  color:var(--haze);font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.06em;
+  padding:9px 14px;cursor:pointer;transition:background .15s,color .15s;
+}
+.seg button:last-child{border-right:0}
+.seg button:hover{color:var(--bone);background:rgba(76,201,212,.07)}
+.seg button.on{background:rgba(242,160,61,.16);color:var(--src)}
+.seg button:focus-visible{outline:2px solid var(--grid);outline-offset:-2px}
+.hint{font-size:11px;color:#6E8B97;letter-spacing:.06em}
+
+/* ---------- small key under a figure ---------- */
+.minikey{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:16px;padding-top:14px;border-top:1px solid rgba(30,68,87,.6)}
+.minikey .swatch{width:11px;height:11px}
+.minikey .key{font-size:10.5px}
+
+/* ---------- svg helper classes ---------- */
+.band{font-family:"Archivo",sans-serif;font-size:15px;font-weight:700;fill:#F2A03D;letter-spacing:.04em}
+.t-code{font-family:"IBM Plex Mono",monospace;font-size:11.5px;fill:#A8C6D0}
+
+/* ---------- code walkthrough (fig 06) ---------- */
+.codepair{display:grid;grid-template-columns:1fr;gap:20px}
+@media(min-width:1000px){.codepair{grid-template-columns:1fr 1.25fr}}
+.codehead{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--haze);margin-bottom:9px;display:flex;align-items:center;gap:9px;
+}
+.tag{padding:2px 7px;border-radius:2px;font-size:10px;letter-spacing:.1em}
+.tag.bad{background:rgba(232,87,75,.16);color:#F2B9B4}
+.tag.ok{background:rgba(76,201,212,.16);color:#8FE1E8}
+.code{background:#041018;border:1px solid var(--hair);border-radius:3px;padding:16px 0;overflow-x:auto}
+.code ol{margin:0;padding:0 20px 0 46px;list-style:decimal}
+.code li{
+  font-family:"IBM Plex Mono",monospace;font-size:12px;line-height:1.95;white-space:pre;
+  color:#A8C6D0;padding:0 6px;border-radius:2px;
+}
+.code li::marker{color:#2A4A5C;font-size:10px}
+.code li.note{cursor:pointer;transition:background .12s}
+.code li.note:hover{background:rgba(76,201,212,.09)}
+.code li.on{background:rgba(242,160,61,.14);box-shadow:inset 2px 0 0 var(--src)}
+.code li:focus-visible{outline:1px solid var(--grid);outline-offset:-1px}
+.code .v{color:#EAF2F0}
+.code .fn{color:#9B8CFF}
+.code .s{color:#8FE1E8}
+.code .num{color:#F2A03D}
+.code .c,.code li.c{color:#4E7183;font-style:italic}
+
+.ann{margin-top:20px;padding:18px 20px;border:1px solid var(--hair);border-left:2px solid var(--src);
+  border-radius:3px;background:rgba(18,49,65,.4);min-height:96px}
+.ann-empty{font-size:12px;color:#5A7C8B}
+.ann-title{font-size:12px;letter-spacing:.1em;color:var(--src);text-transform:uppercase;margin-bottom:10px}
+.ann-body a{color:var(--grid);text-decoration:none;border-bottom:1px solid rgba(76,201,212,.32)}
+.ann-body a:hover{border-bottom-color:var(--grid)}
+.ann-body{margin:0;font-size:15.5px;line-height:1.6;color:#CFE2E8;max-width:78ch}
+
+/* ---------- callout ---------- */
+.callout{margin-top:22px;padding:18px 20px;border:1px solid rgba(232,87,75,.35);border-radius:3px;
+  background:rgba(232,87,75,.05)}
+.callout-k{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#E8574B;margin-bottom:9px}
+.callout p{margin:0;font-size:15.5px;line-height:1.6;color:#DCC7C4;max-width:82ch}
+
+/* ---------- two column block + facts ---------- */
+.twocol{display:grid;grid-template-columns:1fr;gap:34px;margin-top:32px}
+@media(min-width:980px){.twocol{grid-template-columns:1fr 1fr;gap:44px}}
+.subhead{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8FE1E8;
+  padding-bottom:10px;border-bottom:1px solid var(--hair)}
+.shapes.tight td,.shapes.tight th{padding:7px 10px;font-size:11.5px}
+p.note{margin:12px 0 0;font-size:11.5px;line-height:1.6;color:#6E8B97}
+.facts{margin:16px 0 0}
+.facts dt{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--src);margin-top:16px}
+.facts dt:first-child{margin-top:0}
+.facts dd{margin:5px 0 0;font-size:14.5px;line-height:1.55;color:#C4D7DE}
+
+/* ---------- status lamps (fig 05) ---------- */
+.lights{display:grid;grid-template-columns:1fr;gap:12px;margin-top:20px}
+@media(min-width:700px){.lights{grid-template-columns:1fr 1fr;gap:18px}}
+.light{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid var(--hair);
+  border-radius:3px;background:rgba(18,49,65,.4);transition:border-color .2s}
+.light .lamp{width:14px;height:14px;border-radius:50%;flex:none;background:#2C5D74;
+  box-shadow:0 0 0 4px rgba(44,93,116,.18);transition:background .2s,box-shadow .2s}
+.light.ok{border-color:rgba(76,201,212,.45)}
+.light.ok .lamp{background:#4CC9D4;box-shadow:0 0 0 4px rgba(76,201,212,.18)}
+.light.bad{border-color:rgba(232,87,75,.45)}
+.light.bad .lamp{background:#E8574B;box-shadow:0 0 0 4px rgba(232,87,75,.18)}
+.lname{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--haze)}
+.lstate{font-size:12.5px;margin-top:4px;color:#CFE2E8}
+.light.ok .lstate{color:#8FE1E8}
+.light.bad .lstate{color:#F2B9B4}
+
+/* ---------- thesis strip ---------- */
+.thesis{padding:40px 0 8px;border-bottom:1px solid var(--hair)}
+.thesis-k{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--src);margin-bottom:22px}
+.chain{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr;gap:0}
+@media(min-width:820px){.chain{grid-template-columns:repeat(5,1fr);gap:0}}
+.chain li{position:relative;padding:0 20px 26px 0}
+@media(min-width:820px){.chain li{padding:0 22px 8px 0;border-right:1px solid rgba(30,68,87,.7)}
+  .chain li:last-child{border-right:0}}
+.chain .cn{display:block;font-size:11px;letter-spacing:.12em;color:var(--src);margin-bottom:9px}
+.chain p{margin:0;font-size:14px;line-height:1.55;color:#B9CFD7}
+.chain b{color:var(--bone);font-weight:400}
+
+/* ---------- metrics row (fig 10) ---------- */
+.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;margin-top:20px;
+  background:var(--hair);border:1px solid var(--hair);border-radius:3px;overflow:hidden}
+@media(min-width:760px){.metrics{grid-template-columns:repeat(5,1fr)}}
+.metric{background:#0B1F2A;padding:14px 16px}
+.mk{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--haze)}
+.mv{font-size:14px;color:#8FE1E8;margin-top:6px}
+
+/* ---------- kernel table ---------- */
+.shapes.kern td{font-family:"Spectral",serif;font-size:14.5px;font-weight:300;line-height:1.5}
+.shapes.kern td:first-child,.shapes.kern td:nth-child(2),
+.shapes.kern td:nth-child(3),.shapes.kern td:nth-child(4),.shapes.kern td:nth-child(5){
+  font-family:"IBM Plex Mono",monospace;font-size:11.5px;white-space:nowrap;color:#CFE2E8}
+.shapes.kern td:last-child{color:#B9CFD7;min-width:22ch}
+
+/* ---------- notes section ---------- */
+#threads .fignum{color:var(--haze)}
+
+/* ---------- author block ---------- */
+.authors{margin-top:28px;padding-top:22px;border-top:1px solid var(--hair)}
+.authorline{margin:0;font-family:"Archivo",sans-serif;font-size:15.5px;font-weight:500;
+  line-height:1.75;color:var(--bone);letter-spacing:-.005em;max-width:80ch}
+.authorline sup{font-family:"IBM Plex Mono",monospace;font-size:9px;color:var(--src);
+  vertical-align:super;margin-left:1px}
+.authorline .sep{color:#3F6274;font-weight:400;margin:0 2px}
+.affils{margin:12px 0 0;display:flex;flex-wrap:wrap;gap:4px 22px;font-size:11px;color:var(--haze)}
+.affils sup{color:var(--src);font-size:9px}
+.publine{margin:12px 0 0;font-size:11px;color:#6E8B97;letter-spacing:.02em}
+.publine a{color:var(--grid);text-decoration:none;border-bottom:1px solid rgba(76,201,212,.3)}
+.publine a:hover{border-bottom-color:var(--grid)}
+
+/* ---------- aside: quiet reference block ---------- */
+.aside{
+  display:grid;grid-template-columns:1fr;gap:16px;
+  margin:0;padding:26px 0 30px;border-bottom:1px solid var(--hair);
+}
+@media(min-width:820px){.aside{grid-template-columns:186px 1fr;gap:36px}}
+.aside-k{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--haze)}
+.aside h3{
+  font-family:"Archivo",sans-serif;font-weight:500;font-size:19px;letter-spacing:-.01em;
+  color:var(--bone);margin:8px 0 0;
+}
+.aside-body p{margin:0;font-size:14.5px;line-height:1.62;color:#B9CFD7;max-width:80ch}
+.gloss{
+  margin:20px 0 0;display:grid;grid-template-columns:1fr;gap:7px 20px;
+  padding-left:15px;border-left:1px solid var(--hair);
+}
+@media(min-width:700px){.gloss{grid-template-columns:auto 1fr;gap:8px 22px}}
+.gloss dt{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:#8FE1E8;white-space:nowrap}
+.gloss dd{margin:0;font-size:13.5px;line-height:1.55;color:#8FA9B4}
+.gloss dt{align-self:start}
+.aside-links{margin-top:22px!important;display:flex;flex-wrap:wrap;gap:6px 20px;font-size:11.5px}
+.aside-links a{color:var(--haze);text-decoration:none;border-bottom:1px solid rgba(143,169,180,.3)}
+.aside-links a:hover{color:var(--grid);border-bottom-color:var(--grid)}
+.deck a,.cap a,.note a,.facts a,.callout a,.prov-body a,.aside-body p a{color:var(--grid);text-decoration:none;border-bottom:1px solid rgba(76,201,212,.32)}
+.deck a:hover,.cap a:hover,.note a:hover,.facts a:hover,.callout a:hover,.prov-body a:hover,.aside-body p a:hover{border-bottom-color:var(--grid)}
+
+.glosshead{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#8FE1E8;
+  padding-bottom:10px;border-bottom:1px solid var(--hair);margin-bottom:6px}
+.subnote{margin:10px 0 0;font-size:14px;line-height:1.55;color:#8FA9B4;max-width:74ch}
+
+/* ---------- shape table ---------- */
+.shapes{width:100%;border-collapse:collapse;margin-top:26px;font-family:"IBM Plex Mono",monospace;font-size:12.5px}
+.shapes th{
+  text-align:left;padding:10px 12px;border-bottom:1px solid var(--hair);
+  font-weight:500;letter-spacing:.1em;text-transform:uppercase;font-size:10.5px;color:var(--haze);
+}
+.shapes td{padding:11px 12px;vertical-align:top;border-bottom:1px solid rgba(30,68,87,.5);color:#CFE2E8}
+.shapes td:first-child{color:var(--haze)}
+.shapes .to{color:var(--src)}
+
+/* ---------- footer ---------- */
+.foot{padding:56px 0 90px;color:var(--haze);font-family:"IBM Plex Mono",monospace;font-size:12.5px;line-height:1.8}
+.foot a{color:var(--grid);text-decoration:none;border-bottom:1px solid rgba(76,201,212,.3)}
+.foot a:hover{border-bottom-color:var(--grid)}
+.foot h3{
+  font-family:"Archivo",sans-serif;font-size:13px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--bone);font-weight:600;margin:0 0 16px;
+}
+.refs{margin:0;padding:0;list-style:none;max-width:76ch}
+.refs li{margin-bottom:14px;padding-left:22px;text-indent:-22px}
+
+/* svg text defaults */
+text{font-family:"IBM Plex Mono",monospace;fill:var(--haze)}
+.t-lab{font-size:11px;letter-spacing:.04em}
+.t-small{font-size:9.5px;letter-spacing:.06em}
+.t-big{font-size:13px;fill:var(--bone);font-weight:500}
+.t-axis{font-size:10px;fill:#6E8B97}
+
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<header class="mast">
+  <div class="eyebrow">IPDPS 2021 · arXiv:2010.10248</div>
+  <h1>Temporal blocking of finite-difference stencil operators with sparse <span class="hi">“off-the-grid”</span> sources</h1>
+  <p class="standfirst">These solvers are only fast when cached data is reused across timesteps. Real wave-propagation codes break the technique, because seismic sources and receivers sit between grid points. A short primer on time-tiling, then ten figures on why it breaks, how the paper puts it back together, and what the code actually says.</p>
+  <div class="authors">
+    <p class="authorline"><span class="an">George Bisbas</span><sup>1</sup> <span class="sep">·</span> <span class="an">Fabio Luporini</span><sup>2</sup> <span class="sep">·</span> <span class="an">Mathias Louboutin</span><sup>3</sup> <span class="sep">·</span> <span class="an">Rhodri Nelson</span><sup>1</sup> <span class="sep">·</span> <span class="an">Gerard J. Gorman</span><sup>1</sup> <span class="sep">·</span> <span class="an">Paul H. J. Kelly</span><sup>1</sup></p>
+    <p class="affils mono">
+      <span><sup>1</sup>&#8202;Imperial College London, UK</span>
+      <span><sup>2</sup>&#8202;Devito Codes, London, UK</span>
+      <span><sup>3</sup>&#8202;Georgia Institute of Technology, Atlanta, GA, USA</span>
+    </p>
+    <p class="publine mono">35th IEEE IPDPS, 17–21 May 2021, pp. 497–506 &nbsp;·&nbsp;
+      <a href="https://arxiv.org/abs/2010.10248" target="_blank" rel="noopener">arXiv:2010.10248</a> &nbsp;·&nbsp;
+      <a href="https://ieeexplore.ieee.org/abstract/document/9460483" target="_blank" rel="noopener">IEEE Xplore</a>
+    </p>
+  </div>
+</header>
+
+<section class="provenance">
+  <div class="prov-k mono">How this was made</div>
+  <div class="prov-body">
+    <p>These figures were built by <b>Claude Opus 5</b> (Anthropic) at the authors’ request, working from the published
+    paper (<span class="mono">arXiv:2010.10248</span>), the IPDPS’21 slide deck, and the code listings and Devito
+    snippets from the work. Every diagram here is <em>redrawn for explanation</em> rather than reproduced from the
+    publication.</p>
+    <ul class="prov-list mono">
+      <li><span class="pl-k">measurements</span> Speedups, tile sizes, machine specifications and timestep counts trace to the paper and are cited in full at the foot of the page.</li>
+      <li><span class="pl-k">added analysis</span> The tile-width model in Fig. 10, and the reading of Table I that goes with it, are <em>not</em> results from the paper. They are analysis added here and are flagged as such in place, including one point where the model and Table I disagree.</li>
+      <li><span class="pl-k">illustrative geometry</span> Tile counts, block widths and skew values in the interactive figures are chosen for legibility, not to match any benchmarked configuration.</li>
+    </ul>
+    <p class="prov-foot">Worth checking before any of it is reused in a talk or a draft.</p>
+  </div>
+</section>
+
+
+
+<section class="thesis">
+  <div class="thesis-k mono">The argument, in five moves</div>
+  <ol class="chain">
+    <li><span class="cn mono">01</span><p><b>Stencils tile well in time.</b> Advance a cached block through several timesteps instead of one. Dense, affine, uniform dependences; decades of literature.</p></li>
+    <li><span class="cn mono">02</span><p><b>Real propagators are not just stencils.</b> Sources and receivers sit off the grid and are applied through a second loop with non-affine accesses.</p></li>
+    <li><span class="cn mono">03</span><p><b>That second loop cannot be time-tiled.</b> Not because the physics forbids it — because the loop has no valid position once tiles run ahead of one another.</p></li>
+    <li><span class="cn mono">04</span><p><b>So remove the second loop.</b> Observe which grid points a source touches, store the contribution on those points, and fold it into the stencil's own sweep.</p></li>
+    <li><span class="cn mono">05</span><p><b>Now tile in time.</b> Up to 1.6× over tuned spatially blocked code at low order, with a clear ceiling at high order.</p></li>
+  </ol>
+</section>
+
+<div class="body">
+
+<nav class="index" aria-label="Figure index">
+  <ol>
+    <li><a href="#devito"><span class="n">··</span> &nbsp;Devito</a></li>
+    <li><a href="#primer"><span class="n">··</span> &nbsp;What is time-tiling</a></li>
+    <li><a href="#f1"><span class="n">01</span> &nbsp;The stencil</a></li>
+    <li><a href="#f2"><span class="n">02</span> &nbsp;Off the grid</a></li>
+    <li><a href="#f3"><span class="n">03</span> &nbsp;Skewing time</a></li>
+    <li><a href="#f4"><span class="n">04</span> &nbsp;The violation</a></li>
+    <li><a href="#f5"><span class="n">05</span> &nbsp;Both at once</a></li>
+    <li><a href="#f6"><span class="n">06</span> &nbsp;Realignment</a></li>
+    <li><a href="#f7"><span class="n">07</span> &nbsp;The code</a></li>
+    <li><a href="#f8"><span class="n">08</span> &nbsp;The loop nest</a></li>
+    <li><a href="#f9"><span class="n">09</span> &nbsp;What it bought</a></li>
+    <li><a href="#f10"><span class="n">10</span> &nbsp;The squeeze</a></li>
+    <li><a href="#threads"><span class="n">··</span> &nbsp;Open threads</a></li>
+  </ol>
+
+  <div class="railkey">
+    <div class="rk-t mono">Colour key</div>
+    <ul>
+      <li><i class="swatch" style="background:#4CC9D4"></i><span>space<em>the grid, and dependences that hold</em></span></li>
+      <li><i class="swatch" style="background:#9B8CFF"></i><span>time<em>timesteps, and space–time tiles</em></span></li>
+      <li><i class="swatch" style="background:#F2A03D"></i><span>sparse<em>sources and receivers, off the grid</em></span></li>
+      <li><i class="swatch" style="background:#E8574B"></i><span>broken<em>a dependence that cannot be satisfied</em></span></li>
+    </ul>
+    <p class="rk-note mono">Two figures step outside this: in the tiling families hue only tells tiles apart, and the roofline follows the paper’s own red-and-yellow coding.</p>
+  </div>
+</nav>
+
+<main>
+
+<!-- ============ CONTEXT ============ -->
+<aside class="aside" id="devito">
+  <div class="aside-rail">
+    <div class="aside-k mono">The toolchain</div>
+    <h3>Devito, in brief</h3>
+  </div>
+
+  <div class="aside-body">
+    <p><a href="https://www.devitoproject.org/" target="_blank" rel="noopener">Devito</a> is an open-source Python DSL and compiler for finite-difference stencil computation. You write the PDE symbolically on top of <a href="https://www.sympy.org/" target="_blank" rel="noopener">SymPy</a>; it derives the loop nests, applies vectorisation, OpenMP and MPI parallelism and cache blocking, then generates and just-in-time compiles the C. CPUs, GPUs, clusters. Everything on this page is implemented inside that compiler rather than beside it.</p>
+
+
+    <p class="aside-links mono">
+      <a href="https://github.com/devitocodes/devito" target="_blank" rel="noopener">source</a>
+      <a href="https://github.com/devitocodes/devito/tree/main/examples" target="_blank" rel="noopener">examples &amp; tutorials</a>
+      <a href="https://github.com/devitocodes/devito/blob/main/FAQ.md" target="_blank" rel="noopener">FAQ</a>
+      <a href="https://github.com/georgebisbas/devito" target="_blank" rel="noopener">the fork used here</a>
+      <a href="https://doi.org/10.5194/gmd-12-1165-2019" target="_blank" rel="noopener">cite: GMD 2019</a>
+      <a href="https://doi.org/10.1145/3374916" target="_blank" rel="noopener">ACM TOMS 2020</a>
+    </p>
+  </div>
+</aside>
+
+<!-- ============ PRIMER ============ -->
+<section class="plate" id="primer">
+  <div class="plate-head">
+    <div class="fignum">PRIMER</div>
+    <h2>Time-tiling, briefly</h2>
+  </div>
+  <p class="deck">Temporal blocking reorders the loop nest so that a cached block is advanced through several timesteps before the next block is touched — one trip to memory serving many updates instead of one. It is worth doing because the field dwarfs the cache: 512³ in single precision is 512 MiB against roughly 48 MiB of last-level cache, with hundreds of timesteps to get through. The transformation is a loop interchange, sliding time inward:</p>
+
+  <div class="panel">
+    <div class="codepair">
+      <div>
+        <div class="codehead"><span class="tag bad">spatial blocking</span> time outermost</div>
+        <div class="code"><ol>
+          <li><span class="fn">for</span> t <span class="fn">in</span> timesteps:</li>
+          <li>  <span class="fn">for</span> blk <span class="fn">in</span> blocks:</li>
+          <li>    <span class="fn">for</span> x <span class="fn">in</span> blk:  update(t, x)</li>
+          <li class="c"># blk is reloaded on every t</li>
+        </ol></div>
+      </div>
+      <div>
+        <div class="codehead"><span class="tag ok">temporal blocking</span> time moved inside</div>
+        <div class="code"><ol>
+          <li><span class="fn">for</span> tt <span class="fn">in</span> time_tiles:</li>
+          <li>  <span class="fn">for</span> blk <span class="fn">in</span> blocks:</li>
+          <li>    <span class="fn">for</span> t <span class="fn">in</span> tt:</li>
+          <li>      <span class="fn">for</span> x <span class="fn">in</span> blk:  update(t, x)</li>
+          <li class="c"># blk is loaded once for all t in tt</li>
+        </ol></div>
+      </div>
+    </div>
+
+    <div class="subhead mono" style="margin-top:34px">Four ways to cut the space–time iteration space</div>
+    <p class="subnote">Time-tiling is a family of methods, not a single one. Each panel below shows the same iteration space: every dot is one grid point at one timestep, and its colour says which tile owns it.</p>
+
+    <svg id="tilefam" viewBox="0 0 900 740" role="img" style="margin-top:18px" aria-label="Four ways of cutting the space-time iteration space, each drawn on the same lattice of iteration points: spatial blocking, skewed parallelogram tiles, overlapped trapezoidal tiles with redundant points, and diamond tiles allowing concurrent start.">
+    </svg>
+  </div>
+
+  <p class="cap">That interchange is not legal as written: a block's edge needs neighbours from the block beside it, which has not reached the timestep yet. Each family above restores legality differently — by leaning, by recomputing, or by choosing a tile shape that never asks. This paper uses skewed wavefront tiling, which Fig. 03 covers. The problem this paper addresses is orthogonal to that choice: none of these families can be applied at all once the simulation contains sources that are not on the grid.</p>
+</section>
+
+<div class="keystrip">
+  <div class="ks-row">
+    <span class="key"><i class="swatch" style="background:#4CC9D4"></i><b>space</b> — the grid, and dependences that hold</span>
+    <span class="key"><i class="swatch" style="background:#9B8CFF"></i><b>time</b> — timesteps, and space–time tiles</span>
+    <span class="key"><i class="swatch" style="background:#F2A03D"></i><b>sparse</b> — sources and receivers, off the grid</span>
+    <span class="key"><i class="swatch" style="background:#E8574B"></i><b>broken</b> — a dependence that cannot be satisfied</span>
+  </div>
+  <p class="rk-note mono">Two figures step outside this: in the tiling families hue only tells tiles apart, and the roofline follows the paper’s own red-and-yellow coding.</p>
+</div>
+
+<!-- ============ FIGURE 1 ============ -->
+<section class="plate" id="f1">
+  <div class="plate-head">
+    <div class="fignum">FIG. 01</div>
+    <h2>Every point depends on its neighbours</h2>
+  </div>
+  <p class="deck">Discretise a PDE with explicit finite differences and every grid point at timestep <span class="mono">t+1</span> becomes a weighted sum of its neighbours at <span class="mono">t</span>. The reach of that sum is the space order. It is dense, regular and predictable, and therefore tileable. The dependence pattern below is what every legality argument on this page refers back to.</p>
+
+  <div class="panel">
+    <svg id="stencilfig" viewBox="0 0 900 340" role="img" aria-label="Left: a one-dimensional three-point stencil sweeping left to right along the grid. Right: a three-dimensional star stencil rotating, with arms growing as the space order increases.">
+      <!-- ===================== left · 1D sweep ===================== -->
+      <text class="t-big" x="20" y="26">1D · 3-point update</text>
+      <text class="t-small" x="20" y="44">u[t+1][x] = a·u[t][x-1] + b·u[t][x] + c·u[t][x+1]</text>
+
+      <text class="t-axis" x="20" y="140">t+1</text>
+      <text class="t-axis" x="26" y="252">t</text>
+      <line x1="56" y1="110" x2="56" y2="266" stroke="#1E4457" stroke-width="1"/>
+
+      <line x1="76" y1="248" x2="452" y2="248" stroke="#1E4457" stroke-width="1"/>
+      <line x1="76" y1="136" x2="452" y2="136" stroke="#1E4457" stroke-width="1"/>
+
+      <g id="s1in"></g>
+      <g id="s1out"></g>
+      <g id="s1arrows"></g>
+      <g id="s1label"></g>
+
+      <line x1="500" y1="20" x2="500" y2="320" stroke="#1E4457" stroke-width="1" stroke-dasharray="3 5"/>
+
+      <!-- ===================== right · 3D star ===================== -->
+      <text class="t-big" x="530" y="26">3D · star stencil</text>
+      <text class="t-small" x="530" y="44">radius r = space order / 2 · one arm per axis direction</text>
+      <g id="s3axes"></g>
+      <g id="s3pts"></g>
+      <g id="s3label"></g>
+
+      <defs>
+        <marker id="ar-sw" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#4CC9D4"/>
+        </marker>
+      </defs>
+    </svg>
+
+    <div class="control" style="margin-top:16px">
+      <div class="control-row">
+        <div class="seg" id="animctl"><button type="button" id="animtoggle">Pause</button></div>
+        <span class="hint mono" id="animnote">the sweep runs left to right; the star turns and grows with the space order</span>
+      </div>
+    </div>
+  </div>
+
+  <p class="cap">Left, the canonical case: three neighbours at <span class="mono">t</span> feed one point at <span class="mono">t+1</span>, and the update marches along the row. Every blocking scheme below has to respect those three arrows. Right, the same idea in 3D — a star reaching <span class="mono">r = so/2</span> points along each axis, so the point count is <span class="mono">6r + 1</span>. Watch the arms as the order cycles: 13 points at space order 4, 25 at order 8, 37 at order 12. The paper benchmarks all three, and Fig. 10 shows what that growth costs.</p>
+</section>
+
+<!-- ============ FIGURE 2 ============ -->
+<section class="plate" id="f2">
+  <div class="plate-head">
+    <div class="fignum">FIG. 02</div>
+    <h2>Sources and receivers do not sit on the grid</h2>
+  </div>
+  <p class="deck">A seismic or medical-imaging simulation is not a clean stencil benchmark. Energy is injected by sources and sampled by receivers whose physical coordinates are <em>not</em> aligned with the discretisation. Both sit on the same grid at the same time — a shot record has one source and thousands of receivers — and each spreads its contribution across the surrounding points through weights that vary continuously with position. Drag either marker and watch the weights move.</p>
+
+  <div class="panel">
+    <svg id="f2fig" viewBox="0 0 900 440" role="img" aria-label="A finite-difference lattice carrying both an off-grid source and an off-grid receiver at once. Each is draggable, and the four interpolation weights around each update live, shown as bars alongside.">
+      <text class="t-small" x="76" y="36" fill="#6E8B97">one grid, two kinds of operator, neither on it</text>
+
+      <g id="f2grid"></g>
+      <g id="f2cells"></g>
+      <g id="f2lat"></g>
+      <g id="f2arrows"></g>
+      <g id="f2pulse"></g>
+      <g id="f2corners"></g>
+      <g id="f2marks"></g>
+      <rect id="f2hit" x="72" y="56" width="412" height="296" fill="transparent" style="cursor:grab;touch-action:none"/>
+
+      <line x1="516" y1="24" x2="516" y2="416" stroke="#1E4457" stroke-width="1" stroke-dasharray="3 5"/>
+
+      <g id="f2panel"></g>
+    </svg>
+
+    <div class="control" style="margin-top:16px">
+      <div class="control-row">
+        <span class="hint mono" id="f2hint">drag either marker — the one nearest your pointer moves</span>
+      </div>
+    </div>
+
+    <p class="note mono" style="margin-top:14px">Weights shown for a 2D slice; in 3D each operator touches eight points. Devito builds both from coordinates known only at runtime, so the accesses are non-affine.</p>
+  </div>
+
+  <p class="cap">Two iteration spaces share one field. The stencil walks the lattice in order; these two arrive through indirect accesses at coordinates that were never part of it. The arrows run opposite ways on purpose — injection scatters outward, interpolation gathers inward — because the receiver operator is the adjoint of the source operator, built from the same weights. </p>
+  <p class="cap">That symmetry matters later: in FWI and RTM both appear in the same operator, so anything that fixes one has to fix the other. In time the two are aligned, acting on the same timestep index; in space neither is.</p>
+</section>
+
+<!-- ============ FIGURE 3 ============ -->
+<section class="plate" id="f3">
+  <div class="plate-head">
+    <div class="fignum">FIG. 03</div>
+    <h2>Skewing the tiles</h2>
+  </div>
+  <p class="deck">Spatial blocking cuts the domain into cache-sized tiles, then throws the data away at the end of every timestep. Temporal blocking keeps going — advance one tile through several timesteps before touching the next. That is only legal if everything a point reads has already been computed. Tiles run left to right, so the dangerous dependence is the one reaching <em>right</em>, into a tile that has not started. Skewing leans the tiles to pull it back.</p>
+
+  <div class="aside">
+    <h4>Why the minimum skew is the stencil radius</h4>
+    <p>Think of the stencil as a speed limit. A point at <span class="mono">t+1</span> reads <span class="mono">r</span> cells to either side at <span class="mono">t</span>; those points read <span class="mono">r</span> cells further at <span class="mono">t-1</span>. Influence therefore spreads outward at exactly <span class="mono">r</span> cells per timestep — a discrete light cone, and the cone widens whether you like it or not.</p>
+    <p>A tile is a promise to compute a region without consulting its right-hand neighbour. To keep that promise, the tile's right boundary has to retreat at least as fast as the cone widens. Retreat by less than <span class="mono">r</span> per timestep and the cone escapes; retreat by exactly <span class="mono">r</span> and the boundary and the cone travel together. Hence <span class="mono">s ≥ r</span>, where <span class="mono">r = space_order / 2</span>.</p>
+    <p>The cost is the flip side of the same geometry, and it is worth being exact about what it is. Skewing recomputes nothing — the iteration space is still partitioned, every point updated once. What it costs is <em>footprint</em>. Carried through <span class="mono">T</span> timesteps, a tile of width <span class="mono">W</span> sweeps across <span class="mono">W + r·T</span> columns while updating only <span class="mono">W</span> of them, so the data it must hold grows with the lean even though the work does not. On top of that, tiles start in sequence rather than together, so there is pipeline fill and drain. That is the tension: a taller time block buys reuse, a wider stencil spends it, and by space order 12 the second term wins. Fig. 10 puts numbers on it.</p>
+  </div>
+
+  <div class="panel">
+    <svg viewBox="0 0 900 320" role="img" aria-label="Two panels comparing a vertical tile boundary against one skewed by the stencil radius. In the first, the dependence cone crosses the boundary; in the second, the boundary recedes at the same rate the cone widens, so the cone stays inside.">
+      <text class="t-big" x="30" y="26">The dependence cone against the tile boundary</text>
+      <text class="t-small" x="30" y="44">same point, same stencil (r = 1) — only the boundary differs</text>
+
+      <!-- shared row rules -->
+      <g stroke="#153244" stroke-width="1">
+        <line x1="40" y1="250" x2="430" y2="250"/><line x1="40" y1="175" x2="430" y2="175"/><line x1="40" y1="100" x2="430" y2="100"/>
+        <line x1="470" y1="250" x2="866" y2="250"/><line x1="470" y1="175" x2="866" y2="175"/><line x1="470" y1="100" x2="866" y2="100"/>
+      </g>
+      <g class="t-axis">
+        <text x="34" y="254" text-anchor="end">t</text><text x="34" y="179" text-anchor="end">t+1</text><text x="34" y="104" text-anchor="end">t+2</text>
+      </g>
+
+      <!-- ---------- LEFT: vertical boundary ---------- -->
+      <text class="t-lab" x="60" y="80" fill="#E8574B">boundary fixed · s = 0</text>
+
+      <!-- cone -->
+      <polygon points="320,100 400,250 240,250" fill="#4CC9D4" fill-opacity=".13" stroke="#4CC9D4" stroke-width="1.3"/>
+      <!-- escaped part -->
+      <polygon points="320,100 400,250 320,250" fill="#E8574B" fill-opacity=".28" stroke="none"/>
+      <!-- boundary -->
+      <line x1="320" y1="86" x2="320" y2="264" stroke="#E8574B" stroke-width="2"/>
+
+      <!-- lattice -->
+      <g id="whyLatL"></g>
+      <circle cx="320" cy="100" r="7" fill="#EAF2F0" stroke="#071620" stroke-width="1.4"/>
+
+      <!-- width brackets -->
+      <path d="M280 164 L280 156 L360 156 L360 164" fill="none" stroke="#8FA9B4" stroke-width="1"/>
+      <text class="t-small" x="320" y="150" text-anchor="middle">2r</text>
+      <text class="t-small" x="366" y="180" fill="#E8574B">r cells past the boundary</text>
+      <text class="t-small" x="366" y="238" fill="#E8574B">2r past, and growing</text>
+
+      <text class="t-small" x="60" y="286" fill="#E8574B">The cone escapes after one timestep. Those values belong to</text>
+      <text class="t-small" x="60" y="301" fill="#E8574B">the next tile, which has not run — the tile cannot keep its promise.</text>
+
+      <line x1="450" y1="20" x2="450" y2="300" stroke="#1E4457" stroke-width="1" stroke-dasharray="3 5"/>
+
+      <!-- ---------- RIGHT: skewed boundary ---------- -->
+      <text class="t-lab" x="500" y="80" fill="#4CC9D4">boundary recedes r per step · s = r</text>
+
+      <polygon points="680,100 760,250 600,250" fill="#4CC9D4" fill-opacity=".13" stroke="#4CC9D4" stroke-width="1.3"/>
+      <!-- boundary, drawn just outside the cone edge so both read -->
+      <path d="M676 86 L716 161 L760 244" fill="none" stroke="#9B8CFF" stroke-width="2"/>
+      <text class="t-small" x="726" y="120" fill="#B7ACFF">slope = r cells</text>
+      <text class="t-small" x="726" y="134" fill="#B7ACFF">per timestep</text>
+
+      <g id="whyLatR"></g>
+      <circle cx="680" cy="100" r="7" fill="#EAF2F0" stroke="#071620" stroke-width="1.4"/>
+
+      <!-- step markers showing the two rates matching -->
+      <g stroke="#F2A03D" stroke-width="1.2">
+        <line x1="680" y1="168" x2="720" y2="168" stroke-dasharray="3 3"/>
+        <line x1="680" y1="243" x2="760" y2="243" stroke-dasharray="3 3"/>
+      </g>
+      <text class="t-small" x="724" y="172" fill="#F2A03D">+r</text>
+      <text class="t-small" x="764" y="247" fill="#F2A03D">+2r</text>
+
+      <text class="t-small" x="500" y="286" fill="#8FE1E8">The boundary gives ground at exactly the rate the cone gains it.</text>
+      <text class="t-small" x="500" y="301" fill="#8FE1E8">Everything the tile reads, the tile already owns. Skew more and it still works — just wastefully.</text>
+    </svg>
+  </div>
+
+  <div class="panel">
+    <div class="control">
+      <div class="control-row">
+        <label for="skew">Skew factor <span class="mono" style="text-transform:none;letter-spacing:0">s</span></label>
+        <input id="skew" type="range" min="0" max="3" step="1" value="0" aria-describedby="verdict">
+        <div class="readout mono" id="skewval">0</div>
+        <span class="hint mono">cells per timestep</span>
+      </div>
+      <div class="control-row" style="margin-top:14px">
+        <label>Stencil radius</label>
+        <div class="seg" id="rseg" role="group" aria-label="Stencil radius">
+          <button type="button" data-r="1" class="on">space order 2 · r = 1</button>
+          <button type="button" data-r="2">space order 4 · r = 2</button>
+        </div>
+        <span class="hint mono" id="rule">legal when s ≥ r</span>
+      </div>
+    </div>
+
+    <svg id="skewfig" viewBox="0 0 900 430" role="img" aria-label="A space-time diagram of grid points grouped into tiles whose skew can be adjusted, with playback showing the order points are computed in and which reads hit data that does not exist yet.">
+      <line x1="60" y1="372" x2="866" y2="372" stroke="#2C5D74" stroke-width="1.2"/>
+      <line x1="60" y1="372" x2="60" y2="46" stroke="#2C5D74" stroke-width="1.2"/>
+      <text class="t-lab" x="866" y="396" text-anchor="end" fill="#4CC9D4">space  x →</text>
+      <text class="t-lab" x="30" y="60" fill="#9B8CFF" transform="rotate(-90 30 60)">time  t →</text>
+      <g id="trules"></g>
+      <g id="tiles"></g>
+      <g id="dots"></g>
+      <g id="badges"></g>
+      <g id="deps"></g>
+      <g id="notes"></g>
+    </svg>
+
+    <div class="playbar">
+      <button type="button" class="btn primary" id="play">▶ Watch the sweep</button>
+      <button type="button" class="btn" id="step">Step</button>
+      <button type="button" class="btn" id="reset">Reset</button>
+      <label for="speed" class="mono speedlab">speed</label>
+      <input id="speed" type="range" min="1" max="5" step="1" value="3" style="flex:0 1 110px;min-width:90px">
+      <span class="status mono" id="status">not started</span>
+    </div>
+
+    <div class="verdict mono" id="verdict"></div>
+
+    <div class="minikey">
+      <span class="key"><i class="swatch" style="background:#9B8CFF"></i>computed</span>
+      <span class="key"><i class="swatch" style="background:#0D2531;border:1px solid #4A7C93"></i>not yet computed</span>
+      <span class="key"><i class="swatch" style="background:#EAF2F0"></i>point being updated now</span>
+      <span class="key"><i class="swatch" style="background:#4CC9D4"></i>read that is available</span>
+      <span class="key"><i class="swatch" style="background:#E8574B"></i>read of data that does not exist</span>
+    </div>
+  </div>
+  <p class="cap">Every dot is a grid point at one timestep; every parallelogram is one space–time tile, numbered in execution order. Press play and the sweep runs the way the generated code does: tile ① is carried through all four timesteps before tile ② begins, so its data stays in cache for the whole time block. The white marker is the point being updated, and the arrows are the <span class="mono">2r+1</span> values it reads from the row below. At skew 0, watch the right-hand arrows go red every time the sweep reaches a tile's trailing edge: it is asking for values from a tile that has not run. Raise the skew to <span class="mono">r</span> and the counter stays at zero for the whole run. </p>
+  <p class="cap">Raise it beyond r and the run is still clean, but the tile now sweeps across more columns than it updates for no extra reuse. The minimum legal skew <em>is</em> r, so a wider stencil forces a steeper lean whether or not you want one. This is why the paper's 1.6× at space order 4 falls to about 1.13× at order 8 and vanishes by order 12.</p>
+</section>
+
+<!-- ============ FIGURE 4 ============ -->
+<section class="plate" id="f4">
+  <div class="plate-head">
+    <div class="fignum">FIG. 04</div>
+    <h2>The source lands on a tile seam</h2>
+  </div>
+  <p class="deck">Skewing settles the stencil's own dependences. It does nothing for the source, because the source is a <em>separate loop over a separate iteration space</em> — one pass per timestep, over all sources, across the whole domain. That was harmless without time-tiling, when the whole domain advanced in lockstep. Once tiles run ahead of each other, a single source whose footprint straddles a tile seam has to be applied at two different moments in the schedule. One loop cannot be in two places. It is also why a general-purpose tiler cannot rescue this: the injection loop’s accesses are non-affine, so <a href="https://github.com/bondhugula/pluto" target="_blank" rel="noopener">PLUTO</a>, <a href="https://github.com/llvm/llvm-project/tree/main/polly" target="_blank" rel="noopener">Polly</a>, <a href="https://github.com/inducer/loopy" target="_blank" rel="noopener">Loo.py</a> and <a href="https://github.com/periscop/cloog" target="_blank" rel="noopener">CLooG</a> tile the stencil beside it and stop at this one.</p>
+
+  <div class="panel">
+    <svg viewBox="0 0 900 460" role="img" aria-label="Left: a space-time diagram where one source's four affected grid points straddle the seam between two tiles. Right: an execution timeline showing that the single injection loop would have to run at two separate moments.">
+
+      <!-- ================= LEFT: space-time ================= -->
+      <text class="t-big" x="40" y="30">Where the source writes</text>
+      <text class="t-small" x="40" y="48">one source · four affected grid points · two tiles</text>
+
+      <line x1="60" y1="392" x2="470" y2="392" stroke="#2C5D74" stroke-width="1.2"/>
+      <line x1="60" y1="392" x2="60" y2="80" stroke="#2C5D74" stroke-width="1.2"/>
+      <text class="t-lab" x="470" y="416" text-anchor="end" fill="#4CC9D4">space  x →</text>
+      <text class="t-lab" x="34" y="94" fill="#9B8CFF" transform="rotate(-90 34 94)">time  t →</text>
+
+      <!-- timestep rules + labels -->
+      <g stroke="#153244" stroke-width="1">
+        <line x1="60" y1="368" x2="470" y2="368"/><line x1="60" y1="304" x2="470" y2="304"/>
+        <line x1="60" y1="240" x2="470" y2="240"/><line x1="60" y1="176" x2="470" y2="176"/>
+        <line x1="60" y1="112" x2="470" y2="112"/>
+      </g>
+      <g class="t-axis">
+        <text x="52" y="372" text-anchor="end">t</text>
+        <text x="52" y="308" text-anchor="end">t+1</text>
+        <text x="52" y="244" text-anchor="end">t+2</text>
+        <text x="52" y="180" text-anchor="end">t+3</text>
+        <text x="52" y="116" text-anchor="end">t+4</text>
+      </g>
+
+      <!-- tile A (executed first) -->
+      <polygon points="110,368 278,368 214,112 46,112" fill="#9B8CFF" fill-opacity=".16" stroke="#9B8CFF" stroke-width="1.4"/>
+      <!-- tile B (executed second) -->
+      <polygon points="278,368 446,368 382,112 214,112" fill="#123141" fill-opacity=".55" stroke="#4A7C93" stroke-width="1.4" stroke-dasharray="5 4"/>
+
+      <!-- seam -->
+      <line x1="278" y1="368" x2="214" y2="112" stroke="#E8574B" stroke-width="1.8"/>
+
+      <!-- lattice dots -->
+      <g id="f4dots"></g>
+
+      <!-- badges -->
+      <circle cx="150" cy="146" r="13" fill="#9B8CFF" fill-opacity=".9"/>
+      <text x="150" y="151" text-anchor="middle" style="font-size:13px;fill:#0B1B26;font-weight:600">1</text>
+      <text class="t-small" x="170" y="151" fill="#B7ACFF">tile A · runs first</text>
+      <circle cx="330" cy="146" r="13" fill="none" stroke="#4A7C93" stroke-width="1.6" stroke-dasharray="4 3"/>
+      <text x="330" y="151" text-anchor="middle" style="font-size:13px;fill:#8FA9B4;font-weight:600">2</text>
+      <text class="t-small" x="350" y="151" fill="#8FA9B4">tile B · runs after</text>
+
+      <!-- the four affected points at t+2 -->
+      <g>
+        <circle cx="200" cy="240" r="8" fill="#F2A03D" stroke="#EAF2F0" stroke-width="1.4"/>
+        <circle cx="232" cy="240" r="8" fill="#F2A03D" stroke="#EAF2F0" stroke-width="1.4"/>
+        <circle cx="264" cy="240" r="8" fill="#F2A03D" stroke="#EAF2F0" stroke-width="1.4"/>
+        <circle cx="296" cy="240" r="8" fill="#F2A03D" stroke="#EAF2F0" stroke-width="1.4"/>
+      </g>
+      <!-- weight fan from the off-grid source -->
+      <g stroke="#F2A03D" stroke-width="1.2" stroke-dasharray="3 3" opacity=".9">
+        <line x1="248" y1="212" x2="200" y2="234"/><line x1="248" y1="212" x2="232" y2="234"/>
+        <line x1="248" y1="212" x2="264" y2="234"/><line x1="248" y1="212" x2="296" y2="234"/>
+      </g>
+      <path d="M248 196 L252.6 207.5 L264.5 207.5 L255 215 L258.6 227 L248 220 L237.4 227 L241 215 L231.5 207.5 L243.4 207.5 Z" fill="#F2A03D"/>
+      <text class="t-small" x="248" y="188" text-anchor="middle" fill="#F2A03D">source, off the grid</text>
+
+      <!-- brackets naming which side -->
+      <path d="M192 258 L192 268 L240 268 L240 258" fill="none" stroke="#9B8CFF" stroke-width="1.2"/>
+      <text class="t-small" x="216" y="284" text-anchor="middle" fill="#B7ACFF">2 points in A</text>
+      <path d="M256 258 L256 268 L304 268 L304 258" fill="none" stroke="#4A7C93" stroke-width="1.2"/>
+      <text class="t-small" x="280" y="284" text-anchor="middle" fill="#8FA9B4">2 points in B</text>
+
+      <text class="t-small" x="60" y="330" fill="#E8574B">all four must receive their contribution at t+2</text>
+      <text class="t-small" x="60" y="345" fill="#E8574B">— but A and B are never at t+2 at the same moment</text>
+
+      <!-- divider -->
+      <line x1="504" y1="20" x2="504" y2="440" stroke="#1E4457" stroke-width="1" stroke-dasharray="3 5"/>
+
+      <!-- ================= RIGHT: schedule ================= -->
+      <text class="t-big" x="540" y="30">When the code actually runs</text>
+      <text class="t-small" x="540" y="48">wall-clock order, not simulated time</text>
+
+      <!-- wall clock axis -->
+      <line x1="540" y1="200" x2="866" y2="200" stroke="#2C5D74" stroke-width="1.2"/>
+      <text class="t-small" x="866" y="222" text-anchor="end" fill="#6E8B97">wall clock →</text>
+
+      <!-- pass A -->
+      <rect x="546" y="96" width="150" height="42" rx="3" fill="#9B8CFF" fill-opacity=".22" stroke="#9B8CFF" stroke-width="1.3"/>
+      <text class="t-lab" x="621" y="114" text-anchor="middle" fill="#CFC6FF">tile A pass</text>
+      <text class="t-small" x="621" y="130" text-anchor="middle" fill="#B7ACFF">t → t+4, all at once</text>
+      <line x1="621" y1="138" x2="621" y2="196" stroke="#9B8CFF" stroke-width="1" stroke-dasharray="2 3"/>
+      <circle cx="621" cy="200" r="4" fill="#9B8CFF"/>
+
+      <!-- pass B -->
+      <rect x="710" y="96" width="150" height="42" rx="3" fill="#123141" fill-opacity=".6" stroke="#4A7C93" stroke-width="1.3" stroke-dasharray="5 4"/>
+      <text class="t-lab" x="785" y="114" text-anchor="middle" fill="#B7CBD4">tile B pass</text>
+      <text class="t-small" x="785" y="130" text-anchor="middle" fill="#8FA9B4">t → t+4, all at once</text>
+      <line x1="785" y1="138" x2="785" y2="196" stroke="#4A7C93" stroke-width="1" stroke-dasharray="2 3"/>
+      <circle cx="785" cy="200" r="4" fill="#4A7C93"/>
+
+      <!-- the injection loop -->
+      <rect x="620" y="286" width="180" height="52" rx="3" fill="#F2A03D" fill-opacity=".10" stroke="#F2A03D" stroke-width="1.4"/>
+      <text class="t-lab" x="710" y="308" text-anchor="middle" fill="#F2A03D">inject sources at t+2</text>
+      <text class="t-small" x="710" y="325" text-anchor="middle" fill="#C58A3A">one loop, one position in the schedule</text>
+
+      <!-- two required positions -->
+      <path d="M652 286 Q612 250 621 208" fill="none" stroke="#E8574B" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#ar-red4)"/>
+      <path d="M768 286 Q800 250 785 208" fill="none" stroke="#E8574B" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#ar-red4)"/>
+      <text class="t-small" x="556" y="250" fill="#E8574B">needs to be here…</text>
+      <text class="t-small" x="800" y="250" fill="#E8574B">…and here</text>
+
+      <text class="t-lab" x="540" y="382" fill="#E8574B">No legal placement exists.</text>
+      <text class="t-small" x="540" y="400" fill="#F2B9B4">The dependence is not wrong physics — it is unschedulable while the</text>
+      <text class="t-small" x="540" y="415" fill="#F2B9B4">sparse operator lives in its own iteration space. Fig. 05 shows why skewing cannot.</text>
+
+      <defs>
+        <marker id="ar-red4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#E8574B"/>
+        </marker>
+      </defs>
+    </svg>
+  </div>
+  <p class="cap">Left, one source scatters into four grid points, and the tile seam runs straight through them. Right, the same situation in execution order: tile A is advanced through its whole time block before tile B starts, so the single per-timestep injection loop would have to fire once inside A's pass and once inside B's pass. This is the applicability barrier the paper identifies. Nothing about wave propagation forbids temporal blocking; the sparse operator simply cannot be scheduled until it is folded into the grid's own iteration space.</p>
+</section>
+
+<!-- ============ FIGURE 5 ============ -->
+<section class="plate" id="f5">
+  <div class="plate-head">
+    <div class="fignum">FIG. 05</div>
+    <h2>Skewing fixes the stencil, not the source</h2>
+  </div>
+  <p class="deck">Fig. 03 showed skewing repairing the stencil's own dependences. Fig. 04 showed the source failing for a different reason. Put them on the same axes and the asymmetry becomes visible: the grid and the source are fixed in physical space, but the <em>tiles lean</em>, so the seams sweep leftward as time advances. A source sitting at one position gets crossed. Turning up the skew does not remove the crossing — it just moves which timestep it happens at.</p>
+
+  <div class="panel">
+    <div class="control">
+      <div class="control-row">
+        <label for="cskew">Skew <span class="mono" style="text-transform:none;letter-spacing:0">s</span></label>
+        <input id="cskew" type="range" min="0" max="3" step="1" value="2" aria-describedby="cverdict">
+        <div class="readout mono" id="cskewval">2.0</div>
+        <span class="hint mono">stencil radius fixed at r = 2 · space order 4</span>
+      </div>
+      <div class="control-row" style="margin-top:14px">
+        <label for="csrc">Source position</label>
+        <input id="csrc" type="range" min="6" max="18" step="0.05" value="15.70">
+        <div class="readout mono" id="csrcval" style="font-size:15px">x = 15.70</div>
+      </div>
+      <div class="control-row" style="margin-top:14px">
+        <label>Injection</label>
+        <div class="seg" id="cmode" role="group" aria-label="Injection scheme">
+          <button type="button" data-m="raw" class="on">raw · separate loop</button>
+          <button type="button" data-m="pre">precomputed &amp; fused</button>
+        </div>
+      </div>
+    </div>
+
+    <svg id="combofig" viewBox="0 0 900 450" role="img" aria-label="A space-time diagram in which the grid and source stay fixed while skewed tiles lean across them, with a per-timestep verdict on whether the source's affected points fall inside one tile or straddle a seam.">
+      <defs>
+        <clipPath id="plotclip"><rect x="62" y="86" width="590" height="310"/></clipPath>
+        <marker id="ar-cb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#E8574B"/>
+        </marker>
+      </defs>
+
+      <line x1="62" y1="396" x2="652" y2="396" stroke="#2C5D74" stroke-width="1.2"/>
+      <line x1="62" y1="396" x2="62" y2="86" stroke="#2C5D74" stroke-width="1.2"/>
+      <text class="t-lab" x="652" y="420" text-anchor="end" fill="#4CC9D4">physical space  x →</text>
+      <text class="t-lab" x="34" y="100" fill="#9B8CFF" transform="rotate(-90 34 100)">time  t →</text>
+      <text class="t-small" x="62" y="70" fill="#6E8B97">the grid and the source do not move · only the tiles lean</text>
+
+      <g clip-path="url(#plotclip)">
+        <g id="ctiles"></g>
+        <g id="cseams"></g>
+        <g id="cdots"></g>
+        <g id="cfoot"></g>
+      </g>
+      <g id="cbadges"></g>
+      <g id="csrcline"></g>
+      <g id="cchips"></g>
+    </svg>
+
+    <div class="lights">
+      <div class="light" id="light-stencil">
+        <div class="lamp"></div>
+        <div>
+          <div class="lname mono">stencil dependences</div>
+          <div class="lstate mono"></div>
+        </div>
+      </div>
+      <div class="light" id="light-source">
+        <div class="lamp"></div>
+        <div>
+          <div class="lname mono">source dependences</div>
+          <div class="lstate mono"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="verdict mono" id="cverdict"></div>
+  </div>
+
+  <p class="cap">Grid points sit in fixed columns; the source's two affected points are marked at every timestep. Tile seams lean left as <span class="mono">t</span> grows, since that lean is the skew. As the sweep climbs, a seam eventually slides across the source. On the timesteps where it does, the two points that must receive the same contribution at the same simulated time belong to tiles running at different moments. </p>
+  <p class="cap">Watch the two lamps as you drag: the left one turns green at <span class="mono">s ≥ 2</span> and stays green; the right one stays red no matter what you do to the skew, because the injection loop's placement is not a geometry problem. Only switching the injection to precomputed turns it green — which is Fig. 06.</p>
+</section>
+
+<!-- ============ FIGURE 6 ============ -->
+<section class="plate" id="f6">
+  <div class="plate-head">
+    <div class="fignum">FIG. 06</div>
+    <h2>Precompute the injection, then fuse it into the sweep</h2>
+  </div>
+  <p class="deck">The fix removes the second iteration space entirely. Inject into an empty field for a single timestep (a few more only if the wavelet starts at zero) to find out exactly which grid points a source can ever touch; record those points as on-grid arrays; then rewrite the injection as a masked term evaluated inside the stencil loop. The arithmetic is unchanged, but it is now aligned, vectorisable and legal to time-tile, and the compiler generates it from a symbolic description rather than the user writing it by hand.</p>
+
+  <div class="panel">
+    <svg viewBox="0 0 900 760" role="img" aria-label="Three-band walkthrough: discovering which grid points a source touches, re-encoding them as mask, identifier and non-zero-count arrays, and fusing the injection into the stencil loop.">
+
+      <!-- ==================== BAND A ==================== -->
+      <text class="band" x="0" y="26">A</text>
+      <text class="t-big" x="30" y="26">Discover the footprint</text>
+      <text class="t-small" x="30" y="44">Inject into a zero-valued field for one timestep — a few more only if the wavelet starts at zero. Whatever is non-zero afterwards is a point some source can reach.</text>
+
+      <!-- A1: off-grid source on lattice -->
+      <text class="t-small" x="40" y="82" fill="#6E8B97">before · sparse, off the grid</text>
+      <g transform="translate(40,96)">
+        <g stroke="#173648" stroke-width="1">
+          <line x1="0" y1="0" x2="180" y2="0"/><line x1="0" y1="36" x2="180" y2="36"/>
+          <line x1="0" y1="72" x2="180" y2="72"/><line x1="0" y1="108" x2="180" y2="108"/>
+          <line x1="0" y1="0" x2="0" y2="108"/><line x1="36" y1="0" x2="36" y2="108"/>
+          <line x1="72" y1="0" x2="72" y2="108"/><line x1="108" y1="0" x2="108" y2="108"/>
+          <line x1="144" y1="0" x2="144" y2="108"/><line x1="180" y1="0" x2="180" y2="108"/>
+        </g>
+        <g id="f5latA" fill="#0D2531" stroke="#2C5D74" stroke-width="1"></g>
+        <g stroke="#F2A03D" stroke-width="1.2" stroke-dasharray="3 3">
+          <line x1="72" y1="36" x2="94" y2="54"/><line x1="108" y1="36" x2="94" y2="54"/>
+          <line x1="72" y1="72" x2="94" y2="54"/><line x1="108" y1="72" x2="94" y2="54"/>
+        </g>
+        <g fill="#F2A03D" fill-opacity=".5" stroke="#F2A03D">
+          <circle cx="72" cy="36" r="5"/><circle cx="108" cy="36" r="5"/>
+          <circle cx="72" cy="72" r="5"/><circle cx="108" cy="72" r="5"/>
+        </g>
+        <path d="M94 42 L97.6 51 L107 51 L99.5 57 L102.4 66.5 L94 61 L85.6 66.5 L88.5 57 L81 51 L90.4 51 Z" fill="#F2A03D"/>
+        <text class="t-small" x="0" y="130" fill="#C58A3A">coords (n_src, 3) · data (n_src, nt)</text>
+      </g>
+
+      <path d="M246 150 L300 150" stroke="#4CC9D4" stroke-width="1.4" marker-end="url(#ar5)"/>
+      <text class="t-small" x="252" y="142" fill="#6E8B97">inject</text>
+      <text class="t-small" x="252" y="170" fill="#6E8B97">t = 0…3</text>
+
+      <!-- A2: lit footprint -->
+      <text class="t-small" x="320" y="82" fill="#6E8B97">after · non-zero cells found</text>
+      <g transform="translate(320,96)">
+        <g stroke="#173648" stroke-width="1">
+          <line x1="0" y1="0" x2="180" y2="0"/><line x1="0" y1="36" x2="180" y2="36"/>
+          <line x1="0" y1="72" x2="180" y2="72"/><line x1="0" y1="108" x2="180" y2="108"/>
+          <line x1="0" y1="0" x2="0" y2="108"/><line x1="36" y1="0" x2="36" y2="108"/>
+          <line x1="72" y1="0" x2="72" y2="108"/><line x1="108" y1="0" x2="108" y2="108"/>
+          <line x1="144" y1="0" x2="144" y2="108"/><line x1="180" y1="0" x2="180" y2="108"/>
+        </g>
+        <g id="f5latB" fill="#0D2531" stroke="#2C5D74" stroke-width="1"></g>
+        <g fill="#F2A03D" stroke="#EAF2F0" stroke-width="1.2">
+          <circle cx="72" cy="36" r="6"/><circle cx="108" cy="36" r="6"/>
+          <circle cx="72" cy="72" r="6"/><circle cx="108" cy="72" r="6"/>
+        </g>
+        <text class="t-small" x="0" y="130" fill="#C58A3A">these are grid points · they have integer indices</text>
+      </g>
+
+      <path d="M526 150 L580 150" stroke="#4CC9D4" stroke-width="1.4" marker-end="url(#ar5)"/>
+      <text class="t-small" x="532" y="142" fill="#6E8B97">record</text>
+
+      <!-- A3: resulting arrays -->
+      <g transform="translate(600,88)">
+        <rect x="0" y="0" width="262" height="122" rx="3" fill="#071620" stroke="#2C5D74"/>
+        <text class="t-small" x="14" y="24" fill="#8FE1E8">affected points, aligned to the grid</text>
+        <text class="t-small" x="14" y="48">(12, 7, 31)   →  id 0</text>
+        <text class="t-small" x="14" y="66">(13, 7, 31)   →  id 1</text>
+        <text class="t-small" x="14" y="84">(12, 8, 31)   →  id 2</text>
+        <text class="t-small" x="14" y="102">(13, 8, 31)   →  id 3</text>
+      </g>
+      <text class="t-small" x="600" y="228" fill="#C58A3A">coords (n_aff_pts, 3) · data (n_aff_pts, nt)</text>
+
+      <line x1="0" y1="252" x2="900" y2="252" stroke="#1E4457" stroke-width="1"/>
+
+      <!-- ==================== BAND B ==================== -->
+      <text class="band" x="0" y="288">B</text>
+      <text class="t-big" x="30" y="288">Re-encode as three on-grid arrays</text>
+      <text class="t-small" x="30" y="306">A slice through x and z. Every cell is a grid point; shaded cells receive a source contribution.</text>
+
+      <g id="f5arrays"></g>
+
+      <line x1="0" y1="524" x2="900" y2="524" stroke="#1E4457" stroke-width="1"/>
+
+      <!-- ==================== BAND C ==================== -->
+      <text class="band" x="0" y="560">C</text>
+      <text class="t-big" x="30" y="560">Fuse the loops</text>
+      <text class="t-small" x="30" y="578">The mask decides whether a point takes a contribution; the id says which one. The scatter becomes a local read.</text>
+
+      <!-- BEFORE -->
+      <text class="t-small" x="40" y="612" fill="#E8574B">before · two iteration spaces</text>
+      <rect x="40" y="622" width="360" height="52" rx="3" fill="#071620" stroke="#2C5D74"/>
+      <text class="t-code" x="54" y="644">for t:  for x, y, z:</text>
+      <text class="t-code" x="54" y="662">          u[t+1][x][y][z] = stencil(u[t], …)</text>
+      <rect x="40" y="684" width="360" height="52" rx="3" fill="#071620" stroke="#E8574B" stroke-dasharray="4 3"/>
+      <text class="t-code" x="54" y="706" style="fill:#F2B9B4">for t:  for s in sources:</text>
+      <text class="t-code" x="54" y="724" style="fill:#F2B9B4">          scatter s into 8 neighbours   ← indirect</text>
+
+      <path d="M416 678 L470 678" stroke="#4CC9D4" stroke-width="1.6" marker-end="url(#ar5)"/>
+
+      <!-- AFTER -->
+      <text class="t-small" x="492" y="612" fill="#8FE1E8">after · one iteration space</text>
+      <rect x="492" y="622" width="370" height="114" rx="3" fill="#071620" stroke="#4CC9D4"/>
+      <text class="t-code" x="506" y="644">for t:  for x, y:</text>
+      <text class="t-code" x="506" y="662">          for k in 0 … nnz[x][y] - 1:</text>
+      <text class="t-code" x="506" y="680">            z = sid[x][y][k]</text>
+      <text class="t-code" x="506" y="698">            u[t+1][x][y][z] += sm[x][y][z] · src[t][id]</text>
+      <text class="t-code" x="506" y="716">          for z:  u[t+1][x][y][z] = stencil(u[t], …)</text>
+
+      <defs>
+        <marker id="ar5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#4CC9D4"/>
+        </marker>
+      </defs>
+    </svg>
+
+    <table class="shapes">
+      <thead>
+        <tr><th>Structure</th><th>Off-the-grid</th><th></th><th>Aligned</th><th>What changed</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>count</td><td>n_src</td><td class="to">→</td><td>n_aff_pts</td><td>a few sources become the points they touch</td></tr>
+        <tr><td>coordinates</td><td>(n_src, 3)</td><td class="to">→</td><td>(n_aff_pts, 3)</td><td>fractional → integer grid indices</td></tr>
+        <tr><td>data</td><td>(n_src, nt)</td><td class="to">→</td><td>(n_aff_pts, nt)</td><td>weights pre-applied, per point per timestep</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="cap">Band A pays a one-off cost — a single timestep of injection into an empty field — to learn the footprint; the paper reports this as negligible next to the gain, and it holds for non-linear injection too, because it observes the operator rather than modelling it. Band B stores that footprint three ways: a binary mask, an identifier into the pre-weighted source values, and a per-column count of non-zeros so the sweep can skip empty <span class="mono">z</span> slices instead of testing every point. </p>
+  <p class="cap">Band C is the result: one loop nest, no indirect scatter, the same operation count, and a single iteration space that Fig. 03's skew can now be applied to. Fig. 07 shows the Devito that produces it, line by line.</p>
+</section>
+
+
+
+
+<!-- ============ FIGURE 7 ============ -->
+<section class="plate" id="f7">
+  <div class="plate-head">
+    <div class="fignum">FIG. 07</div>
+    <h2>The same physics, written twice</h2>
+  </div>
+  <p class="deck">This is what the transformation costs the person writing the solver. On the left, the textbook <a href="https://www.devitoproject.org/" target="_blank" rel="noopener">Devito</a> acoustic propagator — five lines, and the source injection is a single method call. On the right, the same model rewritten so that the injection is expressible inside the grid's own loop nest. Click any highlighted line to see what it does and why it is there.</p>
+
+  <div class="panel">
+    <div class="codepair">
+      <div>
+        <div class="codehead"><span class="tag bad">baseline</span> untileable</div>
+        <div class="code"><ol>
+          <li class="note" data-n="b1"><span class="v">u</span> = <span class="fn">TimeFunction</span>(name=<span class="s">"u"</span>, grid=model.grid,</li>
+          <li>                 space_order=so, time_order=<span class="num">2</span>)</li>
+          <li class="note" data-n="b2"><span class="v">src_term</span> = src.<span class="fn">inject</span>(field=u.forward,</li>
+          <li class="note" data-n="b2">                     expr=src * dt**<span class="num">2</span> / model.m)</li>
+          <li class="note" data-n="b3"><span class="v">pde</span> = model.m * u.dt2 - u.laplace + model.damp * u.dt</li>
+          <li class="note" data-n="b4"><span class="v">stencil</span> = <span class="fn">Eq</span>(u.forward, <span class="fn">solve</span>(pde, u.forward))</li>
+          <li class="note" data-n="b5"><span class="v">op</span> = <span class="fn">Operator</span>([stencil, src_term])</li>
+        </ol></div>
+      </div>
+
+      <div>
+        <div class="codehead"><span class="tag ok">transformed</span> tileable</div>
+        <div class="code"><ol>
+          <li class="c"># 1 · observe the footprint on an empty field</li>
+          <li class="note" data-n="t1"><span class="v">f</span> = <span class="fn">TimeFunction</span>(name=<span class="s">"f"</span>, grid=model.grid, space_order=so,</li>
+          <li class="note" data-n="t1">                 time_order=<span class="num">2</span>)</li>
+          <li class="note" data-n="t1"><span class="v">src_f</span> = src.<span class="fn">inject</span>(field=f.forward, expr=src * dt**<span class="num">2</span> / model.m)</li>
+          <li class="note" data-n="t1"><span class="fn">Operator</span>([src_f]).<span class="fn">apply</span>(time=<span class="num">3</span>)</li>
+          <li class="note" data-n="t2"><span class="v">nzinds</span> = np.<span class="fn">nonzero</span>(f.data[<span class="num">0</span>])</li>
+          <li>&nbsp;</li>
+          <li class="c"># 2 · build mask, ids, per-point wavelets, column counts</li>
+          <li class="note" data-n="t3"><span class="c">#   source_mask · source_id · save_src · nnz_sp_source_mask</span></li>
+          <li>&nbsp;</li>
+          <li class="c"># 3 · fuse the injection into the grid iteration space</li>
+          <li class="note" data-n="t4"><span class="v">eq0</span> = <span class="fn">Eq</span>(sp_zi.symbolic_max, nnz_sp_source_mask[x, y] - <span class="num">1</span>,</li>
+          <li class="note" data-n="t4">          implicit_dims=(time, x, y))</li>
+          <li class="note" data-n="t5"><span class="v">eq1</span> = <span class="fn">Eq</span>(zind, sp_source_mask[x, y, sp_zi],</li>
+          <li class="note" data-n="t5">          implicit_dims=(time, x, y, sp_zi))</li>
+          <li class="note" data-n="t6"><span class="v">mask_expr</span> = source_mask[x, y, zind] \</li>
+          <li class="note" data-n="t6">            * save_src[time, source_id[x, y, zind]]</li>
+          <li class="note" data-n="t7"><span class="v">eq2</span> = <span class="fn">Inc</span>(usol.forward[t+<span class="num">1</span>, x, y, zind], mask_expr,</li>
+          <li class="note" data-n="t7">           implicit_dims=(time, x, y, sp_zi))</li>
+          <li>&nbsp;</li>
+          <li class="note" data-n="t8"><span class="v">pde_2</span> = model.m * usol.dt2 - usol.laplace + model.damp * usol.dt</li>
+          <li class="note" data-n="t8"><span class="v">stencil_2</span> = <span class="fn">Eq</span>(usol.forward, <span class="fn">solve</span>(pde_2, usol.forward))</li>
+        </ol></div>
+      </div>
+    </div>
+
+    <div class="ann" id="ann">
+      <div class="ann-empty mono">Select a highlighted line to see what it does.</div>
+    </div>
+
+    <div class="subhead mono" style="margin-top:34px">The Devito objects used above</div>
+    <p class="subnote">Roughly in the order they appear. Everything here is ordinary Python — Devito builds a symbolic description first, then generates and compiles the C from it.</p>
+
+    <div class="twocol" style="margin-top:22px">
+      <div>
+        <div class="glosshead mono">Fields and operators</div>
+        <dl class="gloss">
+          <dt>Grid</dt>
+          <dd>The discretised domain: shape, spacing, and the dimensions <span class="mono">x, y, z</span> and <span class="mono">time</span> that index everything else. Reached here as <span class="mono">model.grid</span>.</dd>
+
+          <dt>TimeFunction</dt>
+          <dd>A time-varying field on the Grid. <span class="mono">space_order</span> fixes the stencil radius and the halo; <span class="mono">time_order</span> fixes how many timesteps stay addressable — <span class="mono">u.backward</span>, <span class="mono">u</span>, <span class="mono">u.forward</span> — held in a small rolling buffer, not one slot per timestep.</dd>
+
+          <dt>Function</dt>
+          <dd>The same, without a time dimension. The mask, identifier and count arrays of Fig. 06 are these: grid-shaped, built once, read every timestep.</dd>
+
+          <dt>SparseTimeFunction</dt>
+          <dd>Values living at coordinates that need not lie on the grid at all — <span class="mono">coordinates</span> of shape <span class="mono">(n_src, 3)</span> and <span class="mono">data</span> of shape <span class="mono">(nt, n_src)</span>. Sources and receivers are these, and this class is where the whole difficulty starts.</dd>
+
+          <dt>.inject()</dt>
+          <dd>Expands symbolically into a scatter: write this value into the surrounding grid points, weighted by how near each one is. The addresses come from runtime coordinates, so the accesses are non-affine.</dd>
+
+          <dt>.interpolate()</dt>
+          <dd>The adjoint — a gather rather than a scatter, same weights, used by receivers. Both are drawn in Fig. 02. Both operators appear in the same FWI or RTM run, which is why a fix has to cover both.</dd>
+        </dl>
+      </div>
+
+      <div>
+        <div class="glosshead mono">Equations and compilation</div>
+        <dl class="gloss">
+          <dt>Eq</dt>
+          <dd>A symbolic equation. Given a left-hand side that is a field access, it becomes an assignment in the generated code.</dd>
+
+          <dt>solve</dt>
+          <dd>Rearranges a residual to isolate the unknown, so <span class="mono">solve(pde, u.forward)</span> yields the explicit update. The algebra is SymPy's, not hand-derived.</dd>
+
+          <dt>Inc</dt>
+          <dd>Like <span class="mono">Eq</span>, but an accumulation. Marking the injection as a reduction stops the compiler treating it as a plain write and reordering it against the stencil beside it.</dd>
+
+          <dt>Operator</dt>
+          <dd>Takes a list of equations, derives an iteration space for each from the dimensions it touches, fuses what it can, applies its optimisations, then generates and just-in-time compiles the C. Two equations with mismatched dimensions become two loop nests — the fact this whole paper turns on.</dd>
+
+          <dt>.apply()</dt>
+          <dd>Runs the compiled operator, with any runtime arguments. <span class="mono">apply(time=3)</span> is what advances the throwaway field far enough to reveal the footprint.</dd>
+
+          <dt>Dimension</dt>
+          <dd>A loop index. Most come from the Grid, but one can be declared independently — <span class="mono">sp_zi</span> here — to iterate over something the Grid knows nothing about.</dd>
+
+          <dt>implicit_dims</dt>
+          <dd>Forces an expression into a loop nest whose dimensions it does not syntactically mention. This is the lever that fuses the injection into the stencil's sweep instead of letting it become a nest of its own.</dd>
+
+          <dt>symbolic_max</dt>
+          <dd>Sets a dimension's upper bound from a value read at runtime, giving a loop whose trip count is data — usually zero here, which is how sparsity is expressed without paying for it.</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <p class="cap">The physics is untouched — <span class="mono">pde</span> and <span class="mono">pde_2</span> are the same equation. Everything added on the right exists to move one thing: the source's contribution, out of its own loop and into the grid's. Two mechanisms do the work. <span class="mono">implicit_dims</span> forces an expression into a loop nest it does not syntactically belong to; <span class="mono">symbolic_max</span> lets a loop bound be a value read from an array at runtime. Together they let a sparse, data-dependent operation be written as a dense one.</p>
+</section>
+
+<!-- ============ FIGURE 8 ============ -->
+<section class="plate" id="f8">
+  <div class="plate-head">
+    <div class="fignum">FIG. 08</div>
+    <h2>The generated loop nest</h2>
+  </div>
+  <p class="deck">The loop nest after both transformations. Reading outwards: two innermost loops share one <span class="mono">x, y</span> pair, which is the fusion from Fig. 06; the skew appears as an index shift, which is the lean from Fig. 03; then blocks, tiles, and the time-tile loop. Note where the parallelism sits, and what is <em>not</em> blocked.</p>
+
+  <div class="panel">
+    <svg viewBox="0 0 900 560" role="img" aria-label="The final loop nest drawn as nested boxes, from the outer time-tile loop down to the two fused innermost loops, with annotations on skewing, parallelism and vectorisation.">
+
+      <!-- nesting boxes -->
+      <rect x="30" y="46"  width="600" height="472" rx="4" fill="#9B8CFF" fill-opacity=".07" stroke="#9B8CFF" stroke-width="1.3"/>
+      <rect x="54" y="86"  width="552" height="408" rx="4" fill="#9B8CFF" fill-opacity=".05" stroke="#7E86C9" stroke-width="1.2"/>
+      <rect x="78" y="150" width="504" height="320" rx="4" fill="#4CC9D4" fill-opacity=".05" stroke="#4CC9D4" stroke-width="1.2"/>
+      <rect x="102" y="190" width="456" height="256" rx="4" fill="#4CC9D4" fill-opacity=".04" stroke="#3E93A4" stroke-width="1.2"/>
+      <rect x="126" y="254" width="408" height="168" rx="4" fill="#123141" fill-opacity=".45" stroke="#2C5D74" stroke-width="1.2"/>
+
+      <!-- loop labels -->
+      <text class="t-code" x="44"  y="72">for t_tile in time_tiles:</text>
+      <text class="t-code" x="68"  y="112">  for xtile, ytile in tiles:</text>
+      <text class="t-code" x="68"  y="138">    for t in t_tile:</text>
+      <text class="t-code" x="92"  y="176">      for xblk, yblk in blocks:</text>
+      <text class="t-code" x="116" y="216">        for x in xblk:</text>
+      <text class="t-code" x="116" y="242">          for y in yblk:</text>
+
+      <!-- the two fused inner loops -->
+      <rect x="146" y="272" width="368" height="60" rx="3" fill="#071620" stroke="#4CC9D4" stroke-width="1.2"/>
+      <text class="t-code" x="160" y="294">for z = 1 … nz:</text>
+      <text class="t-code" x="160" y="316" style="fill:#8FE1E8">  A(t, x - time, y - time, z)</text>
+      <text class="t-small" x="378" y="294" fill="#6E8B97">stencil update</text>
+
+      <rect x="146" y="344" width="368" height="60" rx="3" fill="#071620" stroke="#F2A03D" stroke-width="1.2"/>
+      <text class="t-code" x="160" y="366">for z2 = 1 … nnz_mask[x][y]:</text>
+      <text class="t-code" x="160" y="388" style="fill:#F2A03D">  I(t, x - time, y - time, z2)</text>
+      <text class="t-small" x="378" y="366" fill="#6E8B97">source injection</text>
+
+      <!-- fusion brace -->
+      <path d="M528 276 L538 276 L538 400 L528 400" fill="none" stroke="#4CC9D4" stroke-width="1.3"/>
+      <text class="t-small" x="546" y="330" fill="#8FE1E8">one x, y pair</text>
+      <text class="t-small" x="546" y="345" fill="#8FE1E8">two z loops</text>
+
+      <!-- pragma badges -->
+      <g>
+        <rect x="360" y="160" width="212" height="22" rx="11" fill="#9B8CFF" fill-opacity=".18" stroke="#9B8CFF" stroke-width="1"/>
+        <text class="t-small" x="372" y="175" fill="#CFC6FF">#pragma omp for collapse(2)</text>
+      </g>
+      <g>
+        <rect x="330" y="252" width="196" height="22" rx="11" fill="#4CC9D4" fill-opacity=".16" stroke="#4CC9D4" stroke-width="1"/>
+        <text class="t-small" x="342" y="267" fill="#8FE1E8">#pragma omp simd  ·  z only</text>
+      </g>
+
+      <!-- ============ right-hand annotations ============ -->
+      <line x1="660" y1="46" x2="660" y2="518" stroke="#1E4457" stroke-width="1" stroke-dasharray="3 5"/>
+
+      <text class="t-lab" x="684" y="72" fill="#F2A03D">Four things to notice</text>
+
+      <text class="t-lab" x="684" y="118" fill="#B7ACFF">1 · the skew is an index</text>
+      <text class="t-small" x="684" y="136">x - time, y - time. Fig. 03's lean is</text>
+      <text class="t-small" x="684" y="151">not a data movement — it is a shift</text>
+      <text class="t-small" x="684" y="166">applied when addressing the array.</text>
+
+      <text class="t-lab" x="684" y="212" fill="#8FE1E8">2 · z is never blocked</text>
+      <text class="t-small" x="684" y="230">The innermost dimension keeps its</text>
+      <text class="t-small" x="684" y="245">full stride so the vector units see</text>
+      <text class="t-small" x="684" y="260">contiguous memory.</text>
+
+      <text class="t-lab" x="684" y="306" fill="#F2A03D">3 · the injection loop is short</text>
+      <text class="t-small" x="684" y="324">Its trip count is nnz_mask[x][y] —</text>
+      <text class="t-small" x="684" y="339">usually zero. Columns with no source</text>
+      <text class="t-small" x="684" y="354">cost one comparison, not a sweep.</text>
+
+      <text class="t-lab" x="684" y="400" fill="#B7ACFF">4 · parallelism sits inside</text>
+      <text class="t-small" x="684" y="418">the tile, on the blocked x and y</text>
+      <text class="t-small" x="684" y="433">loops, collapsed into one OpenMP</text>
+      <text class="t-small" x="684" y="448">iteration space with dynamic</text>
+      <text class="t-small" x="684" y="463">scheduling.</text>
+
+      <text class="t-small" x="684" y="500" fill="#6E8B97">Structure after Listing 6 of the paper.</text>
+    </svg>
+
+    <div class="callout">
+      <div class="callout-k mono">What is automated, and what is not</div>
+      <p>Only the first half of this is automatic. The precomputation, the mask and identifier arrays, and the fused loop nest are all generated by Devito from the code in Fig. 07. The wavefront tiling on top — the outer tile loops and the <span class="mono">x - time</span> skew — was applied by <em>manually transforming the generated C</em>. Full automation inside the DSL is listed as future work, and the paper is explicit about it.</p>
+    </div>
+  </div>
+
+  <p class="cap">Two loops share the innermost <span class="mono">x, y</span> position: the dense stencil sweep over <span class="mono">z</span>, and a short injection loop whose length is read from <span class="mono">nnz_mask</span>. That adjacency turns the source's data dependence into a local, affine one that the outer tiling can reason about. It also explains why the sparsity reduction in Fig. 06 matters so much: without <span class="mono">nnz_mask</span>, the second loop would run the full <span class="mono">nz</span> and multiply by zero almost every time.</p>
+</section>
+
+<!-- ============ FIGURE 9 ============ -->
+<section class="plate" id="f9">
+  <div class="plate-head">
+    <div class="fignum">FIG. 09</div>
+    <h2>Measured performance</h2>
+  </div>
+  <p class="deck">Three propagators of industrial significance — isotropic acoustic, anisotropic acoustic (TTI) and isotropic elastic — on 512³ grids over 512&nbsp;ms, benchmarked on Azure Broadwell and Skylake VMs against Devito's own aggressively auto-tuned, vectorised, spatially blocked kernels. Both sides were swept over the full tile and block parameter space, so this is a tuned-versus-tuned comparison.</p>
+
+  <div class="panel">
+    <div>
+      <div class="subhead mono" style="margin-bottom:6px">The three propagators</div>
+      <table class="shapes tight kern">
+        <thead>
+          <tr><th>Kernel</th><th>Form</th><th>Time order</th><th>State fields</th><th>Timesteps</th><th>Character</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>isotropic acoustic</td><td>single scalar PDE</td><td>2</td><td>1</td><td>228</td>
+            <td>Jacobi-like Laplacian, low arithmetic intensity, firmly bandwidth-bound — the best case for temporal blocking, and it gains the most.</td>
+          </tr>
+          <tr>
+            <td>anisotropic acoustic (TTI)</td><td>coupled system, 2 scalar PDEs</td><td>2</td><td>2</td><td>587</td>
+            <td>Rotated Laplacian drives the operation count up sharply. More compute per byte to begin with, so less to win back from cache — but it is the industrial workhorse for RTM and FWI.</td>
+          </tr>
+          <tr>
+            <td>isotropic elastic</td><td>coupled vectorial + tensorial</td><td>1</td><td>9</td><td>436</td>
+            <td>Nine state parameters instead of one or two, so data movement dominates. First order in time, which shortens the temporal dependence — a deliberately different pattern along <span class="mono">t</span>, and evidence the scheme is not tuned to one shape.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="note mono">512³ grid, 512 ms simulated, single precision. Grid spacing 10 m; 20 m for TTI.</p>
+    </div>
+
+    <svg viewBox="0 0 900 430" role="img" aria-label="Grouped bar chart of reported throughput speedups by space order and wave propagator.">
+      <text class="t-big" x="30" y="26">Throughput speedup over spatially blocked code</text>
+      <text class="t-small" x="30" y="44">GPoints/s, after auto-tuning both schemes</text>
+
+      <!-- y axis -->
+      <line x1="100" y1="330" x2="100" y2="80" stroke="#2C5D74" stroke-width="1.2"/>
+      <line x1="100" y1="330" x2="840" y2="330" stroke="#2C5D74" stroke-width="1.2"/>
+      <g stroke="#153244" stroke-width="1">
+        <line x1="100" y1="330" x2="840" y2="330"/>
+        <line x1="100" y1="261" x2="840" y2="261"/>
+        <line x1="100" y1="193" x2="840" y2="193"/>
+        <line x1="100" y1="124" x2="840" y2="124"/>
+      </g>
+      <g class="t-axis">
+        <text x="92" y="334" text-anchor="end">1.0×</text>
+        <text x="92" y="265" text-anchor="end">1.2×</text>
+        <text x="92" y="197" text-anchor="end">1.4×</text>
+        <text x="92" y="128" text-anchor="end">1.6×</text>
+      </g>
+      <text class="t-small" x="100" y="348" fill="#6E8B97">baseline — spatially blocked, vectorised, tuned</text>
+
+      <!-- ============ group: space order 4 ============ -->
+      <text class="t-lab" x="216" y="378" text-anchor="middle" fill="#EAF2F0">space order 4</text>
+      <text class="t-small" x="216" y="394" text-anchor="middle">every model gains, on both machines</text>
+
+      <rect x="130" y="124" width="46" height="206" fill="#4CC9D4" fill-opacity=".85"/>
+      <text class="t-small" x="153" y="116" text-anchor="middle" fill="#8FE1E8">1.6×</text>
+
+      <rect x="188" y="179" width="46" height="151" fill="#9B8CFF" fill-opacity=".85"/>
+      <text class="t-small" x="211" y="171" text-anchor="middle" fill="#B7ACFF">1.44×</text>
+
+      <rect x="246" y="255" width="46" height="75" fill="#F2A03D" fill-opacity=".85"/>
+      <rect x="246" y="227" width="46" height="28" fill="#F2A03D" fill-opacity=".30" stroke="#F2A03D" stroke-width="1" stroke-dasharray="3 3"/>
+      <text class="t-small" x="269" y="219" text-anchor="middle" fill="#F2A03D">1.22–1.30×</text>
+
+      <!-- ============ group: space order 8 ============ -->
+      <text class="t-lab" x="466" y="378" text-anchor="middle" fill="#EAF2F0">space order 8</text>
+      <text class="t-small" x="466" y="394" text-anchor="middle">the common production choice</text>
+
+      <rect x="380" y="285" width="46" height="45" fill="#4CC9D4" fill-opacity=".85"/>
+      <path d="M386 279 L403 268 L420 279" fill="none" stroke="#4CC9D4" stroke-width="1.4"/>
+      <text class="t-small" x="403" y="260" text-anchor="middle" fill="#8FE1E8">≥1.13×</text>
+
+      <rect x="438" y="285" width="46" height="45" fill="#9B8CFF" fill-opacity=".55"/>
+      <path d="M444 279 L461 268 L478 279" fill="none" stroke="#9B8CFF" stroke-width="1.4"/>
+      <text class="t-small" x="461" y="260" text-anchor="middle" fill="#B7ACFF">≥1.13×</text>
+      <text class="t-small" x="461" y="246" text-anchor="middle" fill="#6E8B97">Skylake</text>
+
+      <rect x="496" y="285" width="46" height="45" fill="#F2A03D" fill-opacity=".55"/>
+      <path d="M502 279 L519 268 L536 279" fill="none" stroke="#F2A03D" stroke-width="1.4"/>
+      <text class="t-small" x="519" y="260" text-anchor="middle" fill="#F2A03D">≥1.13×</text>
+      <text class="t-small" x="519" y="246" text-anchor="middle" fill="#6E8B97">Broadwell</text>
+
+      <!-- ============ group: space order 12 ============ -->
+      <text class="t-lab" x="716" y="378" text-anchor="middle" fill="#EAF2F0">space order 12</text>
+      <text class="t-small" x="716" y="394" text-anchor="middle">the technique runs out of room</text>
+
+      <rect x="630" y="326" width="46" height="4" fill="#4CC9D4" fill-opacity=".35"/>
+      <text class="t-small" x="653" y="318" text-anchor="middle" fill="#5A7C8B">none</text>
+
+      <rect x="688" y="313" width="46" height="17" fill="#9B8CFF" fill-opacity=".55"/>
+      <text class="t-small" x="711" y="305" text-anchor="middle" fill="#B7ACFF">~1.05×</text>
+
+      <rect x="746" y="313" width="46" height="17" fill="#F2A03D" fill-opacity=".55"/>
+      <text class="t-small" x="769" y="305" text-anchor="middle" fill="#F2A03D">~1.05×</text>
+
+      <!-- legend -->
+      <g transform="translate(100,406)">
+        <rect x="0" y="-9" width="12" height="12" fill="#4CC9D4" fill-opacity=".85"/>
+        <text class="t-small" x="18" y="1">isotropic acoustic</text>
+        <rect x="150" y="-9" width="12" height="12" fill="#9B8CFF" fill-opacity=".85"/>
+        <text class="t-small" x="168" y="1">anisotropic acoustic (TTI)</text>
+        <rect x="360" y="-9" width="12" height="12" fill="#F2A03D" fill-opacity=".85"/>
+        <text class="t-small" x="378" y="1">isotropic elastic</text>
+        <text class="t-small" x="560" y="1" fill="#6E8B97">↑ caps mark a reported floor, not a measured peak</text>
+      </g>
+    </svg>
+
+    <p class="cap" style="margin-top:22px">A wider stencil needs a steeper wavefront angle, so each tile sweeps across more columns than it updates and its working set grows for no extra reuse — while the stencil itself demands more space updates per point advanced in time. Both terms move the wrong way at once, and neither is something tuning can recover. The paper is direct about this: gains of 15–60% at space orders 4 and 8, 5–10% at order 12, and it flags high-order kernels as open work, pointing at stencil retiming and data-layout transformations as possible routes. Fig. 10 puts numbers on the mechanism.</p>
+
+    </div>
+
+  <div class="panel">
+    <svg viewBox="0 0 900 470" role="img" aria-label="Schematic cache-aware roofline on Broadwell. Bandwidth roofs for L1, L2, L3 and DRAM rise diagonally to three compute ceilings. Red markers show spatially blocked kernels and yellow markers the temporally blocked ones, at space orders 4, 8 and 12." style="margin-top:26px">
+      <text class="t-big" x="30" y="26">Cache-aware roofline · schematic</text>
+      <text class="t-small" x="30" y="44">after the paper’s own Fig. 11 — Broadwell, isotropic acoustic, measured with Intel Advisor. Redrawn for shape, not for coordinates.</text>
+
+      <!-- ===== axes (log–log) ===== -->
+      <line x1="120" y1="380" x2="700" y2="380" stroke="#2C5D74" stroke-width="1.2"/>
+      <line x1="120" y1="380" x2="120" y2="70" stroke="#2C5D74" stroke-width="1.2"/>
+      <text class="t-axis" x="410" y="404" text-anchor="middle">arithmetic intensity · FLOP/Byte · log scale →</text>
+      <text class="t-axis" x="100" y="225" text-anchor="middle" transform="rotate(-90 100 225)">performance · GFLOP/s · log scale →</text>
+
+      <!-- ===== compute ceilings ===== -->
+      <g stroke="#5A7C8B" stroke-width="1.1" stroke-dasharray="6 5">
+        <line x1="279.5" y1="113.4" x2="700" y2="113.4"/>
+        <line x1="192.5" y1="150.6" x2="700" y2="150.6"/>
+        <line x1="120"   y1="212.6" x2="700" y2="212.6"/>
+      </g>
+      <text class="t-small" x="704" y="117" fill="#8FA9B4">vector FMA peak</text>
+      <text class="t-small" x="704" y="154" fill="#8FA9B4">vector add peak</text>
+      <text class="t-small" x="704" y="216" fill="#8FA9B4">scalar add peak</text>
+
+      <!-- ===== bandwidth roofs ===== -->
+      <g stroke-width="1.5" fill="none">
+        <line x1="120" y1="181.6" x2="279.5" y2="113.4" stroke="#3E93A4"/>
+        <line x1="120" y1="231.2" x2="395.5" y2="113.4" stroke="#3E93A4"/>
+        <line x1="120" y1="280.8" x2="511.5" y2="113.4" stroke="#4CC9D4"/>
+        <line x1="120" y1="342.8" x2="656.5" y2="113.4" stroke="#3E93A4"/>
+      </g>
+      <text class="t-small" x="126" y="174" fill="#6E8B97">L1</text>
+      <text class="t-small" x="126" y="224" fill="#6E8B97">L2</text>
+      <text class="t-small" x="126" y="274" fill="#8FE1E8">L3</text>
+      <text class="t-small" x="126" y="336" fill="#6E8B97">DRAM</text>
+
+      <!-- ===== movement, drawn under the markers ===== -->
+      <g stroke="#F2C230" stroke-width="1.5" stroke-dasharray="4 3" fill="none" opacity=".9">
+        <path d="M300 256 L312 196" marker-end="url(#ar-rf2)"/>
+        <path d="M430 207 L437 199" marker-end="url(#ar-rf2)"/>
+      </g>
+
+      <!-- ===== space order 4 · triangles ===== -->
+      <path d="M294 254.2 L302 268.2 L286 268.2 Z" fill="#E8574B"/>
+      <path d="M317.2 179.8 L325.2 193.8 L309.2 193.8 Z" fill="#F2C230"/>
+
+      <!-- ===== space order 8 · circles ===== -->
+      <circle cx="424.5" cy="212.6" r="7" fill="#E8574B"/>
+      <circle cx="439" cy="191.5" r="7" fill="#F2C230"/>
+
+      <!-- ===== space order 12 · squares ===== -->
+      <rect x="533.5" y="174.6" width="14" height="14" fill="#E8574B"/>
+      <rect x="539.3" y="169.6" width="14" height="14" fill="#F2C230"/>
+
+      <!-- ===== annotations ===== -->
+      <text class="t-small" x="196" y="150" fill="#F2C230">space order 4 —</text>
+      <text class="t-small" x="196" y="164" fill="#F2C230">crosses the L3 roof</text>
+      <line x1="290" y1="160" x2="312" y2="180" stroke="#F2C230" stroke-width="1" stroke-dasharray="2 3"/>
+
+      <text class="t-small" x="470" y="270" fill="#6E8B97">order 12 — the pair barely separate;</text>
+      <text class="t-small" x="470" y="284" fill="#6E8B97">there is little left for the transformation to move</text>
+      <line x1="540" y1="264" x2="544" y2="192" stroke="#5A7C8B" stroke-width="1" stroke-dasharray="2 3"/>
+
+      <!-- ===== legend ===== -->
+      <g transform="translate(120,428)">
+        <path d="M6 0 L13 12 L-1 12 Z" fill="#8FA9B4"/>
+        <text class="t-small" x="22" y="11">space order 4</text>
+        <circle cx="128" cy="6" r="6" fill="#8FA9B4"/>
+        <text class="t-small" x="142" y="11">order 8</text>
+        <rect x="216" y="0" width="12" height="12" fill="#8FA9B4"/>
+        <text class="t-small" x="236" y="11">order 12</text>
+        <rect x="330" y="0" width="12" height="12" fill="#E8574B"/>
+        <text class="t-small" x="350" y="11">spatially blocked, vectorised</text>
+        <rect x="530" y="0" width="12" height="12" fill="#F2C230"/>
+        <text class="t-small" x="550" y="11">temporally blocked</text>
+      </g>
+
+      <defs>
+        <marker id="ar-rf2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#F2C230"/>
+        </marker>
+      </defs>
+    </svg>
+
+    <p class="cap">A cache-aware roofline plots one point per kernel against several bandwidth roofs — one for each level of the hierarchy — rather than a single DRAM roof, so a kernel’s position tells you which level is holding it back. Marker shape is space order and colour is scheme, following the paper’s own coding: red for the spatially blocked vectorised kernels, yellow for the temporally blocked ones. </p>
+  <p class="cap">Reusing a tile across timesteps cuts the bytes moved per flop, so each yellow marker sits up and to the right of its red partner. The distance between the pair <em>is</em> the speedup: wide at space order 4, where the kernel clears the L3 roof, and barely visible by order 12. The measured version was produced with Intel Advisor on Broadwell; the geometry here is redrawn to show that structure, with no measured coordinates.</p>
+
+    
+
+    <div class="twocol">
+      <div>
+        <div class="subhead mono">Tuned tile and block shapes · Table I</div>
+        <table class="shapes tight">
+          <thead>
+            <tr><th>Problem</th><th>Broadwell</th><th>Skylake</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Acoustic O(2,4)</td><td>32, 32, 8, 8</td><td>64, 64, 8, 8</td></tr>
+            <tr><td>Acoustic O(2,8)</td><td>64, 64, 8, 8</td><td>64, 64, 8, 8</td></tr>
+            <tr><td>Acoustic O(2,12)</td><td>256, 256, 8, 8</td><td>128, 128, 8, 8</td></tr>
+            <tr><td>Elastic O(1,4)</td><td>32, 32, 8, 8</td><td>32, 32, 8, 8</td></tr>
+            <tr><td>Elastic O(1,8)</td><td>32, 32, 8, 8</td><td>64, 56, 8, 12</td></tr>
+            <tr><td>Elastic O(1,12)</td><td>256, 256, 8, 8</td><td>256, 256, 8, 8</td></tr>
+            <tr><td>TTI O(2,4)</td><td>40, 32, 4, 4</td><td>48, 48, 8, 8</td></tr>
+            <tr><td>TTI O(2,8)</td><td>32, 32, 8, 8</td><td>64, 64, 8, 8</td></tr>
+            <tr><td>TTI O(2,12)</td><td>256, 256, 8, 8</td><td>256, 256, 8, 8</td></tr>
+          </tbody>
+        </table>
+        <p class="note mono">tile_x, tile_y, block_x, block_y. Note the jump to 256 at order 12 — the tiles grow until they stop being tiles.</p>
+      </div>
+
+      <div>
+        <div class="subhead mono">The setup</div>
+        <dl class="facts">
+          <dt>machines</dt><dd>Azure E16s_v3 — 8-core Broadwell E5-2673 v4, AVX2, 50 MB L3. E32s_v3 — 16-core Skylake 8171M, AVX-512, 35.75 MB L3.</dd>
+          <dt>toolchain</dt><dd>Devito v4.2.3, GCC 7.5.0 and ICC 2021.1, OpenMP with dynamic scheduling, thread pinning on.</dd>
+          <dt>models</dt><dd>512³ points, single precision, 512 ms simulated. 228 timesteps acoustic, 436 elastic, 587 TTI. Grid spacing 10 m, 20 m for TTI. Zero initial conditions, damping absorbing layers.</dd>
+          <dt>more sources</dt><dd>Adding sparsely located sources barely moves the gain. Only when sources are packed densely through the whole volume does the scheme lose its structural sparsity — and even then it holds about 1.4× against 1.55×.</dd>
+          <dt>code</dt><dd>Devito fork <a href="https://github.com/georgebisbas/devito" target="_blank" rel="noopener"><span class="mono">georgebisbas/devito</span></a> v0.9-alpha, MIT licensed, with reproduction instructions.</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <p class="cap">Up to 1.6× at space order 4 and around 1.13× or better at order 8, varying by propagator, on kernels that were already flop-optimised and tuned and that previously could not be time-tiled at all. The metric is GPoints/s, time to solution, rather than GFLOP/s: a temporally blocked kernel can post a lower flop rate and still finish sooner, which is why the roofline is read as a diagnostic rather than a scoreboard.</p>
+</section>
+
+<!-- ============ FIGURE 10 ============ -->
+<section class="plate" id="f10">
+  <div class="plate-head">
+    <div class="fignum">FIG. 10</div>
+    <h2>Why the gains fall away at high space order</h2>
+  </div>
+  <p class="deck">Fig. 09 shows the speedup collapsing between space order 4 and 12. The arithmetic behind it also accounts for the tile sizes in Table I. Two constraints pull the tile width in opposite directions. Skewing wants the tile <em>wide</em>, because a leaning tile touches <span class="mono">W + r·T</span> columns while only updating <span class="mono">W</span> of them. Cache wants the tile <em>narrow</em>, because <span class="mono">z</span> is never blocked, so a tile holds <span class="mono">W² · nz</span> elements for every field and every time buffer at once. The stencil radius sets how sharp the conflict is.</p>
+
+  <div class="panel">
+    <div class="control">
+      <div class="control-row">
+        <label>Propagator</label>
+        <div class="seg" id="qmodel" role="group" aria-label="Propagator">
+          <button type="button" data-m="ac" class="on">acoustic</button>
+          <button type="button" data-m="tti">TTI</button>
+          <button type="button" data-m="el">elastic</button>
+        </div>
+        <label style="margin-left:8px">Machine</label>
+        <div class="seg" id="qmach" role="group" aria-label="Machine">
+          <button type="button" data-c="bw" class="on">Broadwell · 50 MB L3</button>
+          <button type="button" data-c="sl">Skylake · 35.75 MB L3</button>
+        </div>
+      </div>
+      <div class="control-row" style="margin-top:14px">
+        <label>Space order</label>
+        <div class="seg" id="qorder" role="group" aria-label="Space order">
+          <button type="button" data-r="2" class="on">4 · r = 2</button>
+          <button type="button" data-r="4">8 · r = 4</button>
+          <button type="button" data-r="6">12 · r = 6</button>
+        </div>
+        <label style="margin-left:8px" for="qsteps">Timesteps per tile</label>
+        <input id="qsteps" type="range" min="2" max="8" step="1" value="4" style="max-width:150px">
+        <div class="readout mono" id="qstepsval">4</div>
+      </div>
+    </div>
+
+    <svg id="qfig" viewBox="0 0 900 430" role="img" aria-label="Two curves against tile width: skew efficiency rising, and working set rising past the cache ceiling. The feasible window between them narrows as the stencil radius grows.">
+      <text class="t-big" x="30" y="26">Tile width, squeezed from both sides</text>
+      <text class="t-small" x="30" y="44">left axis · skew efficiency η = W / (W + r·T)   ·   right axis · working set per tile, log scale</text>
+
+      <g id="qbands"></g>
+
+      <line x1="96" y1="352" x2="800" y2="352" stroke="#2C5D74" stroke-width="1.2"/>
+      <line x1="96" y1="352" x2="96" y2="88" stroke="#4CC9D4" stroke-width="1.2"/>
+      <line x1="800" y1="352" x2="800" y2="88" stroke="#9B8CFF" stroke-width="1.2"/>
+
+      <g class="t-axis" id="qaxes"></g>
+      <g id="qgrid"></g>
+      <g id="qcurves"></g>
+      <g id="qmarks"></g>
+
+      <text class="t-lab" x="448" y="396" text-anchor="middle" fill="#EAF2F0">tile width W  (tile_x = tile_y)</text>
+      <text class="t-lab" x="60" y="220" fill="#4CC9D4" transform="rotate(-90 60 220)">skew efficiency</text>
+      <text class="t-lab" x="846" y="220" fill="#9B8CFF" transform="rotate(-90 846 220)">working set</text>
+    </svg>
+
+    <div class="metrics" id="qmetrics"></div>
+    <div class="verdict mono" id="qverdict"></div>
+
+    <div class="callout" style="border-color:rgba(76,201,212,.3);background:rgba(76,201,212,.04)">
+      <div class="callout-k mono" style="color:#8FE1E8">Assumptions</div>
+      <p style="color:#C4D7DE">Working set counted as <span class="mono">W² · nz · 4 bytes · planes</span> with <span class="mono">nz = 512</span>, single precision, and planes = fields × time buffers: 3 for acoustic (one field, second order in time), 6 for TTI (two coupled fields), 18 for elastic (nine state parameters, first order in time). It also ignores the lean itself: a tile skewed by r over T timesteps spans <span class="mono">(W + r·T)²</span> columns rather than <span class="mono">W²</span>, so the true footprint is larger still at high order. It ignores the coefficient and parameter fields — <span class="mono">m</span>, <span class="mono">damp</span>, <span class="mono">θ</span>, <span class="mono">φ</span>, the Lamé fields — and ignores halo overlap between neighbouring tiles, so it is a floor, not an estimate. Efficiency η counts columns touched against columns updated and says nothing about pipeline fill and drain at the domain edges. This is our model for reading Table I, not a measurement from the paper. One disagreement worth chasing: it calls elastic’s order-8 window shut, while Table I still lists a 32×​32 tile there with a measured gain — we are almost certainly over-counting elastic by assuming all nine state parameters stay resident at once.</p>
+    </div>
+  </div>
+
+  <p class="cap">The cyan curve is skew efficiency: it climbs with tile width because the <span class="mono">r·T</span> columns of lean amortise over a wider tile. The violet curve is the working set: it grows as <span class="mono">W²</span> and crosses the L3 ceiling fast, because the <span class="mono">z</span> dimension is deliberately left unblocked for vectorisation. Between them sits a window of workable tile widths. </p>
+  <p class="cap">At space order 4 the window is comfortable. At order 12 the radius triples, efficiency needs a tile far wider than cache will hold, and the window shuts — which is our reading of why Table I's order-12 rows jump to 256×256: the autotuner has effectively backed away from temporal blocking rather than found a better tile. Note also that elastic, with nine state parameters, hits the ceiling at a much narrower tile than acoustic does, which is consistent with its tiles staying at 32×32 while acoustic moves to 64×64.</p>
+</section>
+
+
+<section class="plate" id="threads">
+  <div class="plate-head">
+    <div class="fignum">NOTES</div>
+    <h2>Open threads</h2>
+  </div>
+  <p class="deck">What this artifact deliberately does not claim, and where the work goes next.</p>
+
+  <div class="twocol" style="margin-top:26px">
+    <div>
+      <div class="subhead mono">Care with the claims</div>
+      <dl class="facts">
+        <dt>the tiling is hand-applied</dt>
+        <dd>Devito generates the precomputation, the mask and identifier arrays, and the fused loop nest. The wavefront tiling on top was applied by transforming the generated C by hand. Full automation in the DSL is future work and should be described that way.</dd>
+        <dt>one source in the main results</dt>
+        <dd>The headline speedups use a single source. The corner-case study extends to many, and holds at roughly 1.4× even when sources are dense — but the main numbers should not be read as a multi-shot result.</dd>
+        <dt>both sides autotuned</dt>
+        <dd>The comparison sweeps the tile and block parameter space for the temporally blocked code and compares against Devito's own aggressively tuned spatially blocked kernels. This is the fair framing and is worth stating loudly, because it is the first thing a reviewer will ask.</dd>
+        <dt>the metric is GPoints/s</dt>
+        <dd>Time to solution, not GFLOP/s. A temporally blocked kernel can post a lower flop rate and still finish sooner; the roofline is a diagnostic, not a scoreboard.</dd>
+        <dt>order 12 is a negative result</dt>
+        <dd>Reported as such. Fig. 10 argues it is structural rather than an artefact of tuning — worth checking that argument before we lean on it.</dd>
+      </dl>
+    </div>
+
+    <div>
+      <div class="subhead mono">Where the work goes next</div>
+      <dl class="facts">
+        <dt>MPI-aware scheme</dt>
+        <dd>Tiles that cross rank boundaries need the same treatment the seam gets here, with halo exchange scheduled against the time-tile rather than the timestep.</dd>
+        <dt>GPUs and other architectures</dt>
+        <dd>ARM, and accelerators where the cache hierarchy and the vectorisation constraint on <span class="mono">z</span> both look different.</dd>
+        <dt>high space order</dt>
+        <dd>Stencil retiming and data-layout transformation are the two candidates named in the paper. Fig. 10 suggests where to aim: the binding constraint is the working set, so anything that shrinks resident planes buys back window.</dd>
+        <dt>full DSL integration</dt>
+        <dd>The end state is a user writing the same five lines as the baseline and getting time-tiled code out.</dd>
+        <dt>moving sources</dt>
+        <dd>The precomputation assumes fixed source coordinates across the time domain. Devito's API supports moving sources and the algorithm does not depend on the assumption, but the footprint would need recomputing.</dd>
+        <dt>receivers</dt>
+        <dd>Interpolation is the adjoint of injection — a gather rather than a scatter — and the same alignment applies. In FWI and RTM both appear in the same operator, so it is worth showing the receiver path explicitly in a future draft.</dd>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<footer class="foot">
+  <h3>Sources</h3>
+  <p style="max-width:76ch;margin:0 0 22px">Figures 06 and 07 follow the Devito snippets in the conference slides and Listings 1–6 of the paper. An implementation is published as a Devito fork, <a href="https://github.com/georgebisbas/devito" target="_blank" rel="noopener"><span class="mono">georgebisbas/devito</span></a> v0.9-alpha, MIT licensed, with reproduction instructions in its README. The precomputation and loop fusion are generated by Devito; the wavefront tiling was applied by manually transforming the generated C, and full automation in the DSL is stated as future work.</p>
+  <ul class="refs">
+    <li>Bisbas, G., Luporini, F., Louboutin, M., Nelson, R., Gorman, G., Kelly, P.&nbsp;H.&nbsp;J. (2021). Temporal blocking of finite-difference stencil operators with sparse “off-the-grid” sources. <em>35th IEEE International Parallel &amp; Distributed Processing Symposium (IPDPS)</em>, 497–506. <a href="https://arxiv.org/abs/2010.10248" target="_blank" rel="noopener">arXiv:2010.10248</a> · <a href="https://ieeexplore.ieee.org/abstract/document/9460483" target="_blank" rel="noopener">IEEE Xplore</a></li>
+    <li>Conference presentation slides, IPDPS ’21. <a href="https://www.devitoproject.org/presentations/ipdps21_bisbas_temporal.pdf" target="_blank" rel="noopener">devitoproject.org</a> — source for the methodology steps, array shapes and reported speedups shown in Figures 06, 07 and 09.</li>
+    <li>Bisbas, G., Luporini, F., Louboutin, M., Gorman, G., Kelly, P.&nbsp;H.&nbsp;J. (2019). Accelerating real-world stencil computations using temporal blocking: handling sparse sources and receivers. Poster, SC19.</li>
+    <li>Luporini, F., Louboutin, M., Lange, M., et&nbsp;al. (2020). Architecture and performance of Devito, a system for automated stencil computation. <em>ACM TOMS</em> 46(1), 1–28. <a href="https://doi.org/10.1145/3374916" target="_blank" rel="noopener">doi:10.1145/3374916</a></li>
+    <li>Louboutin, M., Lange, M., Luporini, F., et&nbsp;al. (2019). Devito (v3.1.0): an embedded domain-specific language for finite differences and geophysical exploration. <em>Geoscientific Model Development</em> 12(3), 1165–1187. <a href="https://doi.org/10.5194/gmd-12-1165-2019" target="_blank" rel="noopener">doi:10.5194/gmd-12-1165-2019</a></li>
+    <li>Devito — DSL and compiler framework for automated finite differences and stencil computation. <a href="https://www.devitoproject.org/" target="_blank" rel="noopener">devitoproject.org</a> · <a href="https://github.com/devitocodes/devito" target="_blank" rel="noopener">github.com/devitocodes/devito</a></li>
+    <li>Yount, C., Duran, A. (2016). Effective use of large high-bandwidth memory caches in HPC stencil computation via temporal wave-front tiling. <em>PMBS</em>, 65–75. — the wavefront tiling variant adopted in the paper.</li>
+  </ul>
+  <p style="margin-top:28px;max-width:76ch">Figures redrawn for explanation by Claude Opus 5, not reproduced from the publications. Geometry in Figures 03, 04, 05 and 10 is illustrative: tile counts, block sizes and skew values are chosen for legibility rather than matching any benchmarked configuration.</p>
+</footer>
+
+</main>
+</div>
+</div>
+
+<script>
+
+
+/* ---------- Figure 03: derivation lattices ---------- */
+(function(){
+  const mk = (id, cx) => {
+    const g = document.getElementById(id);
+    if(!g) return;
+    let s = '';
+    for(let y of [250,175,100])
+      for(let x = cx-120; x <= cx+120; x += 40)
+        s += `<circle cx="${x}" cy="${y}" r="2.6" fill="#4A7C93" fill-opacity=".6"/>`;
+    g.innerHTML = s;
+  };
+  mk('whyLatL', 320);
+  mk('whyLatR', 680);
+})();
+
+/* ---------- Figure 03: skew, radius and sweep playback ---------- */
+(function(){
+  const svg = document.getElementById('skewfig');
+  if(!svg) return;
+
+  const tilesG = document.getElementById('tiles');
+  const dotsG  = document.getElementById('dots');
+  const badgeG = document.getElementById('badges');
+  const depsG  = document.getElementById('deps');
+  const notesG = document.getElementById('notes');
+  const rulesG = document.getElementById('trules');
+
+  const slider  = document.getElementById('skew');
+  const readout = document.getElementById('skewval');
+  const verdict = document.getElementById('verdict');
+  const ruleTxt = document.getElementById('rule');
+  const segBtns = [...document.querySelectorAll('#rseg button')];
+  const playBtn = document.getElementById('play');
+  const stepBtn = document.getElementById('step');
+  const resetBtn= document.getElementById('reset');
+  const speedEl = document.getElementById('speed');
+  const statusEl= document.getElementById('status');
+
+  const NB = 4, BW = 4, BT = 4;    // 4 tiles × 4 columns, 4 timesteps per time block
+  const NX = NB * BW;
+  const X0 = 215, DX = 25, T0 = 372, DT = 68;
+  const TOTAL = NB * BT * BW;      // points computed in one time block
+  const ROMAN = ['①','②','③','④'];
+
+  let s = 0, r = 1;
+  let mode = 'explore';            // 'explore' | 'run'
+  let k = 0;                       // playback cursor
+  let timer = null;
+  let violations = 0;
+  let computed = [];               // computed[t][col]
+
+  const px = (xp, t) => X0 + (xp - s*t + s*BT/2) * DX;
+  const py = (t) => T0 - t*DT;
+
+  let rl = '';
+  for(let t=0; t<=BT; t++) rl += `<line x1="60" y1="${py(t)}" x2="866" y2="${py(t)}" stroke="#132B3A" stroke-width="1"/>`;
+  rulesG.innerHTML = rl;
+
+  function clearGrid(){
+    computed = [];
+    for(let t=0; t<=BT; t++){
+      computed[t] = [];
+      for(let x=0; x<=NX; x++) computed[t][x] = (t === 0);   // t = 0 is the initial condition
+    }
+  }
+
+  // step k → which tile, timestep and column
+  function locate(n){
+    const per = BT * BW;
+    const i = Math.floor(n / per);
+    const rem = n % per;
+    return { i, t: 1 + Math.floor(rem / BW), xp: i*BW + (rem % BW) };
+  }
+
+  // the 2r+1 reads a point makes, and whether each one exists yet
+  function reads(t, xp){
+    const out = [];
+    for(let d=-r; d<=r; d++){
+      const n = xp + d - s;                       // skewed coord of the neighbour at t-1
+      const inside = n >= 0 && n <= NX;
+      const ok = !inside || computed[t-1][n] === true;   // outside the block is boundary data
+      out.push({ n, ok, inside });
+    }
+    return out;
+  }
+
+  function drawTiles(activeTile){
+    let tp = '', bg = '';
+    for(let i=0; i<NB; i++){
+      const a = i*BW, b = a+BW;
+      const pts = [[px(a,0),py(0)],[px(b,0),py(0)],[px(b,BT),py(BT)],[px(a,BT),py(BT)]]
+        .map(p => p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+      let state;
+      if(mode === 'run') state = i < activeTile ? 'done' : (i === activeTile ? 'active' : 'pending');
+      else state = i <= 1 ? 'done' : 'pending';
+
+      const fill   = state === 'pending' ? '#123141' : '#9B8CFF';
+      const fillOp = state === 'pending' ? .5 : (state === 'active' ? .22 : .15);
+      const stroke = state === 'pending' ? '#4A7C93' : (state === 'active' ? '#F2A03D' : '#9B8CFF');
+      const dash   = state === 'pending' ? ' stroke-dasharray="5 4"' : '';
+      tp += `<polygon points="${pts}" fill="${fill}" fill-opacity="${fillOp}" stroke="${stroke}" stroke-width="${state==='active'?1.9:1.4}"${dash}/>`;
+
+      const bx = px(a + BW/2, BT), by = py(BT) - 22;
+      const badgeFill = state === 'pending' ? 'none' : (state === 'active' ? '#F2A03D' : '#9B8CFF');
+      bg += `<circle cx="${bx.toFixed(1)}" cy="${by}" r="13" fill="${badgeFill}" fill-opacity="${state==='pending'?1:.92}" `
+          + `stroke="${state==='pending'?'#4A7C93':'none'}" stroke-width="1.6"${state==='pending'?' stroke-dasharray="4 3"':''}/>`
+          + `<text x="${bx.toFixed(1)}" y="${by+5}" text-anchor="middle" style="font-size:13px;font-weight:600;fill:${state==='pending'?'#8FA9B4':'#0B1B26'}">${i+1}</text>`;
+    }
+    tilesG.innerHTML = tp;
+    badgeG.innerHTML = bg;
+  }
+
+  function drawDots(cur){
+    let dp = '';
+    for(let t=0; t<=BT; t++){
+      for(let xp=0; xp<=NX; xp++){
+        const X = px(xp,t).toFixed(1), Y = py(t);
+        if(mode === 'run'){
+          if(cur && t === cur.t && xp === cur.xp) continue;      // drawn later, on top
+          const done = computed[t][xp];
+          dp += done
+            ? `<circle cx="${X}" cy="${Y}" r="3" fill="${t===0?'#4CC9D4':'#9B8CFF'}" fill-opacity=".9"/>`
+            : `<circle cx="${X}" cy="${Y}" r="2.8" fill="#0D2531" stroke="#3A6A80" stroke-width="1"/>`;
+        } else {
+          const i = Math.min(Math.floor(xp/BW), NB-1);
+          const done = i <= 1;
+          dp += `<circle cx="${X}" cy="${Y}" r="2.6" fill="${done?'#9B8CFF':'#4A7C93'}" fill-opacity="${done?.75:.5}"/>`;
+        }
+      }
+    }
+    dotsG.innerHTML = dp;
+  }
+
+  const ARROWDEFS = `<defs>
+      <marker id="ar-dep-ok" viewBox="0 0 10 10" refX="11" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#4CC9D4"/></marker>
+      <marker id="ar-dep-bad" viewBox="0 0 10 10" refX="11" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#E8574B"/></marker>
+    </defs>`;
+
+  function drawFan(t, xp, useComputed){
+    const cx = px(xp,t), cy = py(t);
+    let dep = '', bad = 0;
+    for(let d=-r; d<=r; d++){
+      const n = xp + d - s;
+      let ok;
+      if(useComputed){
+        const inside = n >= 0 && n <= NX;
+        ok = !inside || computed[t-1][n] === true;
+      } else {
+        ok = Math.floor(n / BW) <= 1;                 // explore mode: tiles ①② have run
+      }
+      if(!ok) bad++;
+      const col = ok ? '#4CC9D4' : '#E8574B';
+      const nx = px(n, t-1), ny = py(t-1);
+      dep += `<path d="M${nx.toFixed(1)} ${ny} L${cx.toFixed(1)} ${cy}" stroke="${col}" stroke-width="1.7" fill="none"`
+           + `${ok?'':' stroke-dasharray="5 4"'} marker-end="url(#ar-dep-${ok?'ok':'bad'})"/>`
+           + `<circle cx="${nx.toFixed(1)}" cy="${ny}" r="5.5" fill="#071620" stroke="${col}" stroke-width="1.8"/>`;
+    }
+    dep += `<circle cx="${cx.toFixed(1)}" cy="${cy}" r="7.5" fill="#EAF2F0" stroke="#071620" stroke-width="1.5"/>`;
+    depsG.innerHTML = dep + ARROWDEFS;
+    return { bad, cx, cy };
+  }
+
+  function render(){
+    readout.textContent = String(s);
+    ruleTxt.textContent = `legal when s ≥ ${r}`;
+
+    if(mode === 'run'){
+      const cur = k < TOTAL ? locate(k) : null;
+      drawTiles(cur ? cur.i : NB);
+      drawDots(cur);
+      if(cur){
+        const f = drawFan(cur.t, cur.xp, true);
+        notesG.innerHTML =
+            `<text class="t-lab" x="72" y="${py(cur.t)+4}" fill="#6E8B97">t+${cur.t}</text>`
+          + `<text class="t-small" x="${(f.cx+16).toFixed(1)}" y="${f.cy-12}" fill="#EAF2F0">tile ${ROMAN[cur.i]} · t+${cur.t}</text>`
+          + `<text class="t-small" x="${(f.cx+16).toFixed(1)}" y="${f.cy+2}" fill="${f.bad?'#E8574B':'#4CC9D4'}">`
+          + `${f.bad ? f.bad + ' of ' + (2*r+1) + ' reads are missing' : 'all ' + (2*r+1) + ' reads available'}</text>`;
+      } else {
+        depsG.innerHTML = '';
+        notesG.innerHTML = `<text class="t-lab" x="${px(NX/2, BT/2).toFixed(1)}" y="${py(BT)-52}" text-anchor="middle" `
+          + `fill="${violations?'#E8574B':'#4CC9D4'}">time block complete — ${violations ? violations + ' illegal reads' : 'no illegal reads'}</text>`;
+      }
+      statusEl.textContent = (k >= TOTAL ? 'done · ' : `point ${k+1} of ${TOTAL} · `)
+        + `illegal reads: ${violations}`;
+      statusEl.className = 'status mono' + (violations ? ' bad' : ' good');
+      return;
+    }
+
+    // ---- explore mode: one representative point on tile ②'s trailing edge ----
+    drawTiles(null);
+    drawDots(null);
+    const t = 2, xpP = 2*BW - 0.5;
+    const f = drawFan(t, xpP, false);
+    notesG.innerHTML =
+        `<text class="t-lab" x="72" y="${py(1)+4}" fill="#6E8B97">t+1</text>`
+      + `<text class="t-lab" x="72" y="${py(2)+4}" fill="#6E8B97">t+2</text>`
+      + `<text class="t-small" x="${(f.cx+16).toFixed(1)}" y="${f.cy-12}" fill="#EAF2F0">updating this point at t+2</text>`
+      + `<text class="t-small" x="${(f.cx+16).toFixed(1)}" y="${f.cy+2}" fill="#8FA9B4">it reads ${2*r+1} values from t+1</text>`
+      + `<text class="t-small" x="${(f.cx+16).toFixed(1)}" y="${f.cy+18}" fill="${f.bad?'#E8574B':'#4CC9D4'}">`
+      + `${f.bad ? 'red arrows reach into tile ③, which has not run' : 'every arrow lands in a tile already computed'}</text>`;
+    statusEl.textContent = 'not started';
+    statusEl.className = 'status mono';
+    setVerdict();
+  }
+
+  function setVerdict(){
+    if(s === 0){
+      verdict.className = 'verdict mono';
+      verdict.textContent = 'No skew. These are spatial blocks stacked in time. A point on a tile\u2019s trailing edge reads neighbours belonging to the next tile — which does not run until this one has finished its whole time block. The values it reads are stale, and the result is wrong.';
+    } else if(s < r){
+      verdict.className = 'verdict mono';
+      verdict.textContent = `Skew ${s}, radius ${r}. The boundary retreats more slowly than the dependence cone widens, so the outermost read still escapes the tile. Still illegal — and no amount of taller time blocks will fix it.`;
+    } else if(s === r){
+      verdict.className = 'verdict mono ok';
+      verdict.textContent = `Minimum legal skew for radius ${r}. The boundary now recedes exactly as fast as influence spreads, so every read lands inside the tile or one already executed. The tile can be carried through the whole time block with its data resident in cache. This is wave-front skewing — the variant used in the paper.`;
+    } else {
+      verdict.className = 'verdict mono ok';
+      verdict.textContent = `Skew ${s} exceeds the ${r} required. Still legal, but the tiles now sweep across more columns than they update, so the working set grows for no extra reuse. Over-skewing is pure cost.`;
+    }
+  }
+
+  // ---------- playback ----------
+  function advance(){
+    if(k >= TOTAL){ stop(); return; }
+    const { t, xp } = locate(k);
+    if(reads(t, xp).some(x => !x.ok)) violations++;
+    computed[t][xp] = true;
+    k++;
+    render();
+    if(k >= TOTAL) stop();
+  }
+
+  function start(){
+    if(mode !== 'run'){ mode = 'run'; clearGrid(); k = 0; violations = 0; }
+    if(k >= TOTAL){ clearGrid(); k = 0; violations = 0; }
+    const ms = [0, 320, 200, 120, 70, 35][parseInt(speedEl.value, 10)];
+    timer = setInterval(advance, ms);
+    playBtn.textContent = '❚❚ Pause';
+    playBtn.classList.add('running');
+    render();
+  }
+
+  function stop(){
+    if(timer) clearInterval(timer);
+    timer = null;
+    playBtn.textContent = k >= TOTAL ? '▶ Run again' : '▶ Resume';
+    playBtn.classList.remove('running');
+  }
+
+  function reset(){
+    stop();
+    mode = 'explore'; k = 0; violations = 0;
+    playBtn.textContent = '▶ Watch the sweep';
+    render();
+  }
+
+  playBtn.addEventListener('click', () => timer ? stop() : start());
+  stepBtn.addEventListener('click', () => {
+    stop();
+    if(mode !== 'run'){ mode = 'run'; clearGrid(); k = 0; violations = 0; }
+    advance();
+  });
+  resetBtn.addEventListener('click', reset);
+  speedEl.addEventListener('input', () => { if(timer){ stop(); start(); } });
+
+  slider.addEventListener('input', e => { s = parseInt(e.target.value, 10); reset(); });
+  segBtns.forEach(b => b.addEventListener('click', () => {
+    segBtns.forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    r = parseInt(b.dataset.r, 10);
+    reset();
+  }));
+
+  clearGrid();
+  render();
+})();
+
+/* ---------- Figure 04: lattice dots ---------- */
+(function(){
+  const g = document.getElementById('f4dots');
+  if(!g) return;
+  const rows = [368, 304, 240, 176, 112];
+  let s = '';
+  rows.forEach((y, ri) => {
+    // rows lean left with time, matching the tiles
+    const shift = -16 * ri;
+    for(let x = 104; x <= 452; x += 32){
+      const cx = x + shift;
+      if(cx < 62 || cx > 462) continue;
+      s += `<circle cx="${cx}" cy="${y}" r="2.6" fill="#4A7C93" fill-opacity=".55"/>`;
+    }
+  });
+  g.innerHTML = s;
+})();
+
+/* ---------- Figure 05: lattices and the three arrays ---------- */
+(function(){
+  ['f5latA','f5latB'].forEach(id => {
+    const g = document.getElementById(id);
+    if(!g) return;
+    let s = '';
+    for(let x=0; x<=180; x+=36) for(let y=0; y<=108; y+=36) s += `<circle cx="${x}" cy="${y}" r="3"/>`;
+    g.innerHTML = s;
+  });
+
+  const g = document.getElementById('f5arrays');
+  if(!g) return;
+
+  // a 6 x 4 (x by z) slice; 1 marks a point that receives a contribution
+  const M = [
+    [0,0,0,0,0,0],
+    [0,0,1,1,0,0],
+    [0,0,1,1,0,0],
+    [0,0,0,0,0,0]
+  ];
+  const NXc = 6, NZ = 4, C = 30;
+  let out = '';
+
+  function grid(ox, oy, title, sub, cellFn){
+    let s = `<text class="t-lab" x="${ox}" y="${oy-26}" fill="#8FE1E8">${title}</text>`
+          + `<text class="t-small" x="${ox}" y="${oy-10}">${sub}</text>`;
+    let id = 0;
+    for(let z=0; z<NZ; z++){
+      for(let x=0; x<NXc; x++){
+        const on = M[z][x] === 1;
+        const cur = on ? id++ : null;
+        const cell = cellFn(on, cur, x, z);
+        s += `<rect x="${ox + x*C}" y="${oy + z*C}" width="${C}" height="${C}" `
+           + `fill="${cell.fill}" fill-opacity="${cell.op}" stroke="#22506699" stroke-width="1"/>`;
+        if(cell.text !== '') s += `<text x="${ox + x*C + C/2}" y="${oy + z*C + C/2 + 4}" text-anchor="middle" `
+           + `style="font-size:11px;fill:${cell.tcol}">${cell.text}</text>`;
+      }
+    }
+    return s;
+  }
+
+  // 1 — the binary mask
+  out += grid(40, 372, 'source_mask', 'is there anything to add here?', (on, id) => ({
+    fill: on ? '#F2A03D' : '#0D2531', op: on ? .55 : 1,
+    text: on ? '1' : '0', tcol: on ? '#071620' : '#3F6274'
+  }));
+
+  // 2 — the identifier array
+  out += grid(300, 372, 'source_id', 'which pre-weighted value?', (on, id) => ({
+    fill: on ? '#4CC9D4' : '#0D2531', op: on ? .45 : 1,
+    text: on ? String(id) : '·', tcol: on ? '#071620' : '#3F6274'
+  }));
+
+  // 3 — non-zero count per column, aggregated along z
+  const ox = 560, oy = 372;
+  out += `<text class="t-lab" x="${ox}" y="${oy-26}" fill="#8FE1E8">nnz_mask</text>`
+       + `<text class="t-small" x="${ox}" y="${oy-10}">how many, per column — skip the empties</text>`;
+  for(let x=0; x<NXc; x++){
+    let n = 0; for(let z=0; z<NZ; z++) n += M[z][x];
+    const h = n * 26;
+    out += `<rect x="${ox + x*C + 4}" y="${oy + 104 - h}" width="${C-8}" height="${Math.max(h,2)}" `
+         + `fill="${n?'#9B8CFF':'#1B3D4E'}" fill-opacity="${n?.75:1}"/>`
+         + `<text x="${ox + x*C + C/2}" y="${oy + 124}" text-anchor="middle" style="font-size:11px;fill:${n?'#B7ACFF':'#3F6274'}">${n}</text>`;
+  }
+  out += `<line x1="${ox}" y1="${oy+108}" x2="${ox + NXc*C}" y2="${oy+108}" stroke="#2C5D74" stroke-width="1"/>`;
+
+  // axis labels + the punchline
+  out += `<text class="t-small" x="40" y="${372 + NZ*C + 22}" fill="#6E8B97">x →   (z downwards)</text>`;
+  out += `<text class="t-small" x="560" y="${372 + NZ*C + 22}" fill="#C58A3A">four of twenty-four points do any work — the sweep now knows that in advance</text>`;
+
+  g.innerHTML = out;
+})();
+
+/* ---------- Figure 06: code line annotations ---------- */
+(function(){
+  const panel = document.getElementById('ann');
+  if(!panel) return;
+
+  const NOTES = {
+    b1: ['TimeFunction — the wavefield',
+         'Allocates u with a halo of so/2 points on every side and a rolling time buffer. time_order=2 means three timesteps are addressable (u.backward, u, u.forward) and modulo-indexed into two or three slots, not nt of them. space_order fixes the stencil radius r = so/2 — the same r that sets the minimum skew in Fig. 03.'],
+    b2: ['inject — the line that blocks everything',
+         'src is a SparseTimeFunction: coordinates of shape (n_src, 3) and wavelet data of shape (nt, n_src). .inject() expands symbolically into a scatter that writes each source into its surrounding grid points with interpolation weights, addressed through coordinates only known at runtime. Those accesses are non-affine, which is precisely why polyhedral tilers — <a href=\"https://github.com/bondhugula/pluto\" target=\"_blank\" rel=\"noopener\">PLUTO</a>, <a href=\"https://github.com/llvm/llvm-project/tree/main/polly\" target=\"_blank\" rel=\"noopener\">Polly</a>, <a href=\"https://github.com/inducer/loopy\" target=\"_blank\" rel=\"noopener\">Loo.py</a>, <a href=\"https://github.com/periscop/cloog\" target=\"_blank\" rel=\"noopener\">CLooG</a> — cannot touch this loop even though they handle the stencil beside it perfectly well.'],
+    b3: ['The PDE, as a residual',
+         'm·∂²u/∂t² − ∇²u + damp·∂u/∂t, written symbolically. m is squared slowness, 1/c². The damp field implements the absorbing boundary layer. Nothing here is discretised by hand: u.dt2 and u.laplace expand to finite-difference expressions at the requested orders.'],
+    b4: ['solve — rearrange for the unknown',
+         'solve() does the algebra to isolate u.forward, and Eq turns the result into an assignment. This is the explicit update: everything on the right is known at time t, so the point can be written directly.'],
+    b5: ['Operator — where the two worlds separate',
+         'Devito lowers each equation into an iteration space derived from the dimensions it touches. stencil carries (time, x, y, z); src_term carries (time, p_src) plus indirection. They do not match, so the compiler emits two loop nests inside the time loop. The result is correct and fast — and untileable in time, because the second nest cannot be reasoned about by the machinery that would skew the first.'],
+
+    t1: ['Inject into a field that holds nothing else',
+         'f is a scratch wavefield with identical shape and space order. Running an Operator that contains only the injection, for one timestep — or a few, if the wavelet happens to start at zero — leaves behind exactly the imprint of the sources and nothing else. No PDE runs. This is measurement, not modelling: whatever interpolation scheme .inject() implements, linear or otherwise, the footprint it produces is observed rather than predicted, which is why the scheme is indifferent to the injection type.'],
+    t2: ['np.nonzero — the discovery',
+         'Returns a tuple of index arrays naming every grid point any source can reach. This is the whole precomputation, executed once on the host before time-stepping begins, and it is the reason the paper can call the overhead negligible. Note that a point reached by two nearby sources appears once, not twice — the ID assignment in the next step deduplicates by construction.'],
+    t3: ['Four arrays carry the footprint forward',
+         'source_mask: binary, grid-shaped, 1 where a contribution lands. source_id: same shape, a unique ascending integer per affected point. save_src: shape (nt, n_aff_pts) — the sources\u2019 wavelets decomposed onto those points with the interpolation weights already folded in, so no weighting survives into the hot loop. nnz_sp_source_mask: how many affected points each (x, y) column holds, plus a compacted list of their z indices with empty slices cut away.'],
+    t4: ['symbolic_max — a loop bound read from memory',
+         'sp_zi is a dimension whose upper bound is set per (x, y) from an array value. It generates a C loop whose trip count is data-dependent: for (sp_zi = 0; sp_zi <= nnz[x][y] - 1; sp_zi++). For the overwhelming majority of columns that bound is −1 and the loop body never executes. This is how a sparse operation is expressed inside a dense sweep without paying for the sparsity.'],
+    t5: ['The indirection, moved onto the grid',
+         'zind picks up the actual z index of the k-th affected point in this column. There is still an indirect access — but it now indexes a grid coordinate from a grid-shaped array, inside the grid\u2019s own loop nest, rather than reaching in from a separate list of sources. That is the difference between non-affine and merely indirect.'],
+    t6: ['Mask gates, ID fetches',
+         'source_mask decides whether anything is added at all; source_id says which pre-weighted value to add. Because save_src is indexed by time and by point ID, the value needs no interpolation at this stage — the arithmetic has already happened, once, during precomputation.'],
+    t7: ['Inc, not Eq — and implicit_dims',
+         'Inc marks this as an accumulation into u.forward, so Devito treats it as a reduction and preserves the ordering rather than folding it into the assignment beside it. implicit_dims=(time, x, y, sp_zi) is the load-bearing part: it forces the expression into a loop nest whose dimensions the expression does not syntactically mention. Without it, Devito would build a separate iteration space and put us back where Fig. 04 started.'],
+    t8: ['Unchanged physics',
+         'Identical to the baseline PDE, on usol instead of u. Nothing about the discretisation, the accuracy or the operation count changes — this is worth stating plainly, because the speedup in Fig. 09 comes entirely from the order in which the same arithmetic is performed.']
+  };
+
+  const lines = [...document.querySelectorAll('.code li.note')];
+
+  function show(key){
+    const n = NOTES[key];
+    if(!n) return;
+    lines.forEach(l => l.classList.toggle('on', l.dataset.n === key));
+    panel.innerHTML = `<div class="ann-title mono">${n[0]}</div><p class="ann-body">${n[1]}</p>`;
+  }
+
+  lines.forEach(l => {
+    l.setAttribute('tabindex','0');
+    l.setAttribute('role','button');
+    l.addEventListener('click', () => show(l.dataset.n));
+    l.addEventListener('keydown', e => {
+      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); show(l.dataset.n); }
+    });
+  });
+})();
+
+/* ---------- Figure 05: skew and sources on one diagram ---------- */
+(function(){
+  const svg = document.getElementById('combofig');
+  if(!svg) return;
+
+  const G = {
+    tiles:  document.getElementById('ctiles'),
+    seams:  document.getElementById('cseams'),
+    dots:   document.getElementById('cdots'),
+    foot:   document.getElementById('cfoot'),
+    badges: document.getElementById('cbadges'),
+    srcline:document.getElementById('csrcline'),
+    chips:  document.getElementById('cchips')
+  };
+  const skewEl = document.getElementById('cskew');
+  const srcEl  = document.getElementById('csrc');
+  const skewV  = document.getElementById('cskewval');
+  const srcV   = document.getElementById('csrcval');
+  const verdict= document.getElementById('cverdict');
+  const modeBtns = [...document.querySelectorAll('#cmode button')];
+  const lampS  = document.getElementById('light-stencil');
+  const lampI  = document.getElementById('light-source');
+
+  const BW = 4, BT = 6, R = 2;          // block width, timesteps in the tile, stencil radius
+  const X0 = 62, DX = 24;               // physical x = 0 at px 62
+  const T0 = 396, DT = 50;              // t = 0 at px 396
+
+  const px = (p) => X0 + p*DX;          // physical x never moves
+  const py = (t) => T0 - t*DT;
+  const owner = (p, t, s) => Math.floor((p + s*t) / BW);   // which tile holds p at time t
+
+  let s = 2, xs = 15.70, mode = 'raw';
+
+  function render(){
+    const p0 = Math.floor(xs), p1 = p0 + 1;
+
+    // ---------- tiles ----------
+    let tp = '', bd = '';
+    for(let i=0; i<=14; i++){
+      const a = i*BW, b = a + BW;
+      const shift = s*BT;
+      if(Math.max(a, a - shift) < -3 || Math.min(b, b - shift) > 27) continue;
+      const pts = [[px(a),py(0)],[px(b),py(0)],[px(b - shift),py(BT)],[px(a - shift),py(BT)]]
+        .map(q => q[0].toFixed(1)+','+q[1].toFixed(1)).join(' ');
+      tp += `<polygon points="${pts}" fill="#9B8CFF" fill-opacity="${0.06 + 0.05*(i%2)}" stroke="#9B8CFF" stroke-width="1.2"/>`;
+      const cxb = px(a + BW/2);
+      if(cxb > 74 && cxb < 640)
+        bd += `<text x="${cxb.toFixed(1)}" y="${py(0)+22}" text-anchor="middle" class="t-small" fill="#7E86C9">${i+1}</text>`;
+    }
+    G.tiles.innerHTML = tp;
+    G.badges.innerHTML = bd + `<text class="t-small" x="62" y="${py(0)+22}" fill="#6E8B97">tile:</text>`;
+
+    // ---------- seams, highlighted where they cut the source ----------
+    let sm = '';
+    for(let i=0; i<=14; i++){
+      const a = i*BW;
+      const x1 = px(a), x2 = px(a - s*BT);
+      // does this seam pass between the two affected points at some timestep?
+      let cuts = false;
+      for(let t=0; t<=BT; t++){ const c = a - s*t; if(c > p0 && c <= p1) cuts = true; }
+      sm += `<line x1="${x1.toFixed(1)}" y1="${py(0)}" x2="${x2.toFixed(1)}" y2="${py(BT)}" `
+          + `stroke="${cuts && mode==='raw' ? '#E8574B' : '#3A6478'}" stroke-width="${cuts && mode==='raw' ? 1.8 : 1}"/>`;
+    }
+    G.seams.innerHTML = sm;
+
+    // ---------- grid points ----------
+    let dp = '';
+    for(let p=0; p<=24; p++)
+      for(let t=0; t<=BT; t++)
+        dp += `<circle cx="${px(p)}" cy="${py(t)}" r="2.4" fill="#4A7C93" fill-opacity=".5"/>`;
+    G.dots.innerHTML = dp;
+
+    // ---------- source column ----------
+    const sx = px(xs);
+    G.srcline.innerHTML =
+      `<line x1="${sx.toFixed(1)}" y1="${py(0)}" x2="${sx.toFixed(1)}" y2="${py(BT)+6}" `
+      + `stroke="#F2A03D" stroke-width="1.2" stroke-dasharray="3 4" opacity=".8"/>`
+      + `<path d="M${sx.toFixed(1)} ${py(BT)-16} l4.6 11.5 l11.9 0 l-9.5 7.5 l3.6 12 l-10.6 -7 l-10.6 7 l3.6 -12 l-9.5 -7.5 l11.9 0 Z" fill="#F2A03D"/>`
+      + `<text class="t-small" x="${sx.toFixed(1)}" y="${py(BT)-26}" text-anchor="middle" fill="#F2A03D">`
+      + (mode==='raw' ? 'source · off the grid' : 'source · decomposed onto grid points') + `</text>`;
+
+    // ---------- affected points, per timestep ----------
+    let fp = '', chips = '', nBad = 0;
+    for(let t=0; t<BT; t++){
+      const o0 = owner(p0, t, s), o1 = owner(p1, t, s);
+      const split = (o0 !== o1);
+      const bad = split && mode === 'raw';
+      if(bad) nBad++;
+      const col = mode === 'pre' ? '#4CC9D4' : (bad ? '#E8574B' : '#F2A03D');
+      const y = py(t);
+
+      if(mode === 'pre'){
+        fp += `<rect x="${(px(p0)-6).toFixed(1)}" y="${y-6}" width="12" height="12" fill="${col}" stroke="#EAF2F0" stroke-width="1.1"/>`
+            + `<rect x="${(px(p1)-6).toFixed(1)}" y="${y-6}" width="12" height="12" fill="${col}" stroke="#EAF2F0" stroke-width="1.1"/>`;
+      } else {
+        fp += `<circle cx="${px(p0)}" cy="${y}" r="6.5" fill="${col}" stroke="#EAF2F0" stroke-width="1.1"/>`
+            + `<circle cx="${px(p1)}" cy="${y}" r="6.5" fill="${col}" stroke="#EAF2F0" stroke-width="1.1"/>`;
+      }
+      if(bad){
+        fp += `<path d="M${px(p0)} ${y-13} L${px(p1)} ${y-13}" stroke="#E8574B" stroke-width="1.6" `
+            + `marker-start="url(#ar-cb)" marker-end="url(#ar-cb)"/>`;
+      }
+
+      // chip row
+      const cy = 128 + t*44;
+      const label = mode === 'pre'
+        ? `aligned · rides with tile ${o0+1}`
+        : (split ? `split across tiles ${o0+1} | ${o1+1}` : `both inside tile ${o0+1}`);
+      const cc = mode === 'pre' ? '#4CC9D4' : (split ? '#E8574B' : '#F2A03D');
+      chips += `<text class="t-small" x="672" y="${cy+4}" fill="#6E8B97">t+${t}</text>`
+             + `<rect x="712" y="${cy-13}" width="176" height="26" rx="3" fill="${cc}" fill-opacity=".13" stroke="${cc}" stroke-width="1"/>`
+             + `<text class="t-small" x="800" y="${cy+4}" text-anchor="middle" fill="${cc}">${label}</text>`;
+    }
+    G.foot.innerHTML = fp;
+    G.chips.innerHTML = `<text class="t-lab" x="672" y="100" fill="#EAF2F0">per timestep</text>` + chips;
+
+    // ---------- lamps and verdict ----------
+    const stencilOK = s >= R;
+    const sourceOK  = mode === 'pre';
+
+    lampS.className = 'light ' + (stencilOK ? 'ok' : 'bad');
+    lampS.querySelector('.lstate').textContent = stencilOK
+      ? `satisfied · s = ${s.toFixed(1)} ≥ r = ${R}`
+      : `violated · s = ${s.toFixed(1)} < r = ${R}`;
+
+    lampI.className = 'light ' + (sourceOK ? 'ok' : 'bad');
+    lampI.querySelector('.lstate').textContent = sourceOK
+      ? 'satisfied · contribution stored on the grid'
+      : (nBad ? `violated · ${nBad} of ${BT} timesteps split` : 'violated · unschedulable loop');
+
+    skewV.textContent = s.toFixed(1);
+    srcV.textContent  = 'x = ' + xs.toFixed(2);
+
+    if(mode === 'pre'){
+      verdict.className = 'verdict mono ok';
+      verdict.textContent = 'Precomputed. The source has been decomposed onto the grid points it touches, so its contribution is just another term in the stencil update at those points. It rides with whichever tile owns them, and the seam no longer means anything to it. Drag the skew or the source anywhere you like — both lamps stay green, provided s ≥ r keeps the stencil legal.';
+    } else if(nBad > 0){
+      verdict.className = 'verdict mono';
+      verdict.textContent = `Raw injection. On ${nBad} of ${BT} timesteps the two points that must receive the same contribution at the same simulated time sit in different tiles, which run at different moments. Raising the skew does not fix this — it slides the seam, changing which timesteps fail, not whether they do.`;
+    } else {
+      verdict.className = 'verdict mono';
+      verdict.textContent = 'Raw injection. At this particular position no seam happens to cut between the two affected points — but the source is still written by a separate per-timestep loop over all sources, and that loop has no valid place inside a tile pass. Nudge the source, or the skew, and the crossing reappears.';
+    }
+  }
+
+  skewEl.addEventListener('input', e => { s  = parseFloat(e.target.value); render(); });
+  srcEl .addEventListener('input', e => { xs = parseFloat(e.target.value); render(); });
+  modeBtns.forEach(b => b.addEventListener('click', () => {
+    modeBtns.forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    mode = b.dataset.m;
+    render();
+  }));
+  render();
+})();
+
+/* ---------- Figure 10: the skew-cache squeeze ---------- */
+(function(){
+  const svg = document.getElementById('qfig');
+  if(!svg) return;
+
+  const Wc = [16, 32, 64, 128, 256];        // candidate tile widths
+  const NZ = 512, BYTES = 4;
+  const PLANES = { ac: 3, tti: 6, el: 18 }; // fields x time buffers
+  const NAME   = { ac: 'isotropic acoustic', tti: 'anisotropic acoustic (TTI)', el: 'isotropic elastic' };
+  const L3     = { bw: 50e6, sl: 35.75e6 };
+  const MACH   = { bw: 'Broadwell', sl: 'Skylake' };
+  const ETA_MIN = 0.80;                      // what we call "worth tiling for"
+
+  const X0 = 96, X1 = 800, YB = 352, YT = 88;
+  const xOf = i => X0 + i * (X1 - X0) / (Wc.length - 1);
+  const yEta = e => YB - e * (YB - YT);
+  // working set axis: log10 MiB from 0 (1 MiB) to 3 (1000 MiB)
+  const yWs = bytes => {
+    const l = Math.log10(Math.max(bytes / 1048576, 1));
+    return YB - Math.min(l, 3) / 3 * (YB - YT);
+  };
+
+  let model = 'ac', mach = 'bw', r = 2, T = 4;
+
+  const eta = W => W / (W + r * T);
+  const ws  = W => W * W * NZ * BYTES * PLANES[model];
+  const fmt = b => b >= 1048576*1024 ? (b/1073741824).toFixed(1)+' GiB' : (b/1048576).toFixed(1)+' MiB';
+
+  function render(){
+    const cap = L3[mach];
+
+    // widest tile that still fits in LLC, narrowest that clears the efficiency bar
+    let wFit = null, wEff = null;
+    Wc.forEach(W => { if(ws(W) <= cap && (wFit === null || W > wFit)) wFit = W; });
+    Wc.forEach(W => { if(eta(W) >= ETA_MIN && (wEff === null || W < wEff)) wEff = W; });
+    const open = (wFit !== null && wEff !== null && wEff <= wFit);
+
+    // ---------- bands ----------
+    const iFit = wFit === null ? -1 : Wc.indexOf(wFit);
+    const iEff = wEff === null ? Wc.length : Wc.indexOf(wEff);
+    let bands = '';
+    if(iFit >= 0)
+      bands += `<rect x="${X0-14}" y="${YT-14}" width="${xOf(iFit)+22-X0+14}" height="${YB-YT+14}" `
+             + `fill="#9B8CFF" fill-opacity=".055"/>`
+             + `<text class="t-small" x="${X0-6}" y="${YT-22}" fill="#9B8CFF">cache allows W ≤ ${wFit}</text>`;
+    if(iEff < Wc.length)
+      bands += `<rect x="${xOf(iEff)-22}" y="${YT-14}" width="${X1+14-(xOf(iEff)-22)}" height="${YB-YT+14}" `
+             + `fill="#4CC9D4" fill-opacity=".055"/>`
+             + `<text class="t-small" x="${X1+8}" y="${YT-22}" text-anchor="end" fill="#4CC9D4">skew wants W ≥ ${wEff}</text>`;
+    if(open){
+      const a = xOf(iEff) - 22, b = xOf(iFit) + 22;
+      bands += `<rect x="${a}" y="${YT-14}" width="${b-a}" height="${YB-YT+14}" fill="#4CC9D4" fill-opacity=".10" `
+             + `stroke="#4CC9D4" stroke-width="1" stroke-dasharray="4 4"/>`
+             + `<text class="t-lab" x="${(a+b)/2}" y="${YB+64}" text-anchor="middle" fill="#8FE1E8">workable window</text>`;
+    } else {
+      bands += `<text class="t-lab" x="448" y="${YB+64}" text-anchor="middle" fill="#E8574B">no workable window — the constraints have crossed</text>`;
+    }
+    document.getElementById('qbands').innerHTML = bands;
+
+    // ---------- axes ----------
+    let ax = '', gr = '';
+    Wc.forEach((W,i) => {
+      ax += `<text x="${xOf(i)}" y="${YB+22}" text-anchor="middle">${W}</text>`;
+      gr += `<line x1="${xOf(i)}" y1="${YB}" x2="${xOf(i)}" y2="${YT}" stroke="#132B3A" stroke-width="1"/>`;
+    });
+    [0,.25,.5,.75,1].forEach(e => {
+      ax += `<text x="${X0-10}" y="${yEta(e)+4}" text-anchor="end" fill="#3E93A4">${e.toFixed(2)}</text>`;
+    });
+    [1,10,100,1000].forEach(m => {
+      ax += `<text x="${X1+10}" y="${yWs(m*1048576)+4}" fill="#7E86C9">${m >= 1000 ? '1 GiB' : m+' MiB'}</text>`;
+    });
+    document.getElementById('qaxes').innerHTML = ax;
+
+    // efficiency bar + cache ceiling
+    gr += `<line x1="${X0}" y1="${yEta(ETA_MIN)}" x2="${X1}" y2="${yEta(ETA_MIN)}" stroke="#4CC9D4" stroke-width="1" stroke-dasharray="3 5"/>`
+        + `<text class="t-small" x="${X0+8}" y="${yEta(ETA_MIN)-7}" fill="#4CC9D4">η = ${ETA_MIN.toFixed(2)}</text>`
+        + `<line x1="${X0}" y1="${yWs(cap)}" x2="${X1}" y2="${yWs(cap)}" stroke="#9B8CFF" stroke-width="1.4" stroke-dasharray="6 4"/>`
+        + `<text class="t-small" x="${X1-8}" y="${yWs(cap)-7}" text-anchor="end" fill="#9B8CFF">${MACH[mach]} L3 capacity</text>`;
+    document.getElementById('qgrid').innerHTML = gr;
+
+    // ---------- curves ----------
+    const pE = Wc.map((W,i) => `${xOf(i)},${yEta(eta(W)).toFixed(1)}`).join(' ');
+    const pW = Wc.map((W,i) => `${xOf(i)},${yWs(ws(W)).toFixed(1)}`).join(' ');
+    document.getElementById('qcurves').innerHTML =
+        `<polyline points="${pW}" fill="none" stroke="#9B8CFF" stroke-width="2"/>`
+      + `<polyline points="${pE}" fill="none" stroke="#4CC9D4" stroke-width="2"/>`;
+
+    let mk = '';
+    Wc.forEach((W,i) => {
+      const overCap = ws(W) > cap, meets = eta(W) >= ETA_MIN;
+      mk += `<circle cx="${xOf(i)}" cy="${yWs(ws(W)).toFixed(1)}" r="5" fill="${overCap?'#071620':'#9B8CFF'}" stroke="#9B8CFF" stroke-width="1.8"/>`
+          + `<circle cx="${xOf(i)}" cy="${yEta(eta(W)).toFixed(1)}" r="5" fill="${meets?'#4CC9D4':'#071620'}" stroke="#4CC9D4" stroke-width="1.8"/>`
+          + `<text class="t-small" x="${xOf(i)}" y="${yEta(eta(W))-13}" text-anchor="middle" fill="#8FE1E8">${eta(W).toFixed(2)}</text>`;
+    });
+    document.getElementById('qmarks').innerHTML = mk;
+
+    // ---------- metrics ----------
+    const best = open ? wFit : null;
+    document.getElementById('qmetrics').innerHTML = [
+      ['propagator', NAME[model]],
+      ['planes resident', PLANES[model] + ' × ' + NZ + ' × W²'],
+      ['lean per tile', `${r} × ${T} = ${r*T} columns`],
+      ['best η in window', best ? eta(best).toFixed(2) + ` at W = ${best}` : '—'],
+      ['working set there', best ? fmt(ws(best)) : '—']
+    ].map(m => `<div class="metric"><div class="mk mono">${m[0]}</div><div class="mv mono">${m[1]}</div></div>`).join('');
+
+    document.getElementById('qstepsval').textContent = T;
+
+    const v = document.getElementById('qverdict');
+    if(open){
+      v.className = 'verdict mono ok';
+      v.textContent = `A window exists: tile widths from ${wEff} to ${wFit} clear the efficiency bar and still fit in ${MACH[mach]}'s L3. Carrying ${T} timesteps per tile at radius ${r} costs ${r*T} columns of lean, which a tile of ${wFit} absorbs at η = ${eta(wFit).toFixed(2)} — roughly ${(eta(wFit)*T).toFixed(1)} timesteps of real reuse out of ${T}.`;
+    } else if(wEff === null){
+      v.className = 'verdict mono';
+      v.textContent = `No tile width on offer reaches η = ${ETA_MIN.toFixed(2)}. At radius ${r} with ${T} timesteps per tile, the lean is ${r*T} columns — comparable to the tile itself. Most of what the tile touches it does not update.`;
+    } else {
+      v.className = 'verdict mono';
+      v.textContent = `The constraints have crossed. Efficiency needs W ≥ ${wEff}, but ${MACH[mach]}'s L3 only holds up to W = ${wFit === null ? '—' : wFit}. Widen the tile and it stops being cache-resident; narrow it and the lean eats the reuse. This is the regime the order-12 rows of Table I sit in.`;
+    }
+  }
+
+  function wire(id, attr, set){
+    const btns = [...document.querySelectorAll('#'+id+' button')];
+    btns.forEach(b => b.addEventListener('click', () => {
+      btns.forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+      set(b.dataset[attr]);
+      render();
+    }));
+  }
+  wire('qmodel','m', v => model = v);
+  wire('qmach','c',  v => mach  = v);
+  wire('qorder','r', v => r = parseInt(v,10));
+  document.getElementById('qsteps').addEventListener('input', e => { T = parseInt(e.target.value,10); render(); });
+  render();
+})();
+
+/* ---------- Figure 01: animated stencil pair ---------- */
+(function(){
+  const svg = document.getElementById('stencilfig');
+  if(!svg) return;
+
+  const gIn    = document.getElementById('s1in');
+  const gOut   = document.getElementById('s1out');
+  const gArr   = document.getElementById('s1arrows');
+  const gLab   = document.getElementById('s1label');
+  const gAxes  = document.getElementById('s3axes');
+  const gPts   = document.getElementById('s3pts');
+  const gS3Lab = document.getElementById('s3label');
+  const btn    = document.getElementById('animtoggle');
+
+  // ---- 1D geometry ----
+  const N = 7, X1 = 96, DX1 = 58, Y_T = 248, Y_T1 = 136;
+  const x1 = i => X1 + i*DX1;
+  const STEP = 0.62, HOLD = 1.0;            // seconds per point, pause before repeat
+  const SPAN = N - 2;                        // interior points updated: 1 … N-2
+  const CYCLE = SPAN*STEP + HOLD;
+
+  // ---- 3D geometry ----
+  const CX = 706, CY = 170, AX = 27, AY = 12.5, AZ = 17;
+  const ORDERS = [4, 8, 12], PHASE = 3.0, GROW = 0.9;
+
+  let playing = true, t0 = null, elapsed = 0, raf = null;
+  const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ============ 1D panel ============
+  function draw1D(time){
+    const p = time % CYCLE;
+    const active = Math.min(Math.floor(p / STEP), SPAN - 1);
+    const done = p >= SPAN*STEP;             // holding at the end of the sweep
+    const cur = done ? -1 : active + 1;      // index of the point being written
+
+    let a = '', b = '', c = '', l = '';
+    for(let i=0; i<N; i++){
+      const feeds = cur >= 0 && Math.abs(i - cur) <= 1;
+      a += `<circle cx="${x1(i)}" cy="${Y_T}" r="${feeds ? 7.5 : 6}" `
+         + `fill="${feeds ? '#4CC9D4' : '#123141'}" fill-opacity="${feeds ? .35 : 1}" `
+         + `stroke="${feeds ? '#4CC9D4' : '#2C5D74'}" stroke-width="${feeds ? 1.6 : 1}"/>`;
+
+      const written = done ? (i >= 1 && i <= SPAN) : (i >= 1 && i <= active);
+      const isCur = i === cur;
+      b += `<circle cx="${x1(i)}" cy="${Y_T1}" r="${isCur ? 9 : 6}" `
+         + `fill="${isCur ? '#EAF2F0' : (written ? '#4CC9D4' : '#123141')}" `
+         + `fill-opacity="${written && !isCur ? .8 : 1}" `
+         + `stroke="${isCur ? '#EAF2F0' : '#2C5D74'}" stroke-width="${isCur ? 1.6 : 1}"/>`;
+    }
+
+    if(cur >= 0){
+      for(let k=-1; k<=1; k++){
+        const sx = x1(cur + k), sy = Y_T - 9;
+        const ex = x1(cur), ey = Y_T1 + 11;
+        c += `<path d="M${sx} ${sy} Q${(sx+ex)/2} ${(sy+ey)/2} ${ex} ${ey}" fill="none" `
+           + `stroke="#4CC9D4" stroke-width="1.6" opacity=".9" marker-end="url(#ar-sw)"/>`;
+      }
+      l = `<text class="t-small" x="${x1(cur)}" y="${Y_T + 26}" text-anchor="middle" fill="#8FE1E8">x</text>`
+        + `<text class="t-small" x="${x1(cur-1)}" y="${Y_T + 26}" text-anchor="middle" fill="#4A7C93">x-1</text>`
+        + `<text class="t-small" x="${x1(cur+1)}" y="${Y_T + 26}" text-anchor="middle" fill="#4A7C93">x+1</text>`
+        + `<text class="t-small" x="76" y="${Y_T1 - 26}" fill="#6E8B97">dependence cone</text>`;
+    } else {
+      l = `<text class="t-small" x="76" y="${Y_T1 - 26}" fill="#4CC9D4">row complete — one timestep done</text>`;
+    }
+
+    gIn.innerHTML = a; gOut.innerHTML = b; gArr.innerHTML = c; gLab.innerHTML = l;
+  }
+
+  // ============ 3D panel ============
+  function draw3D(time){
+    const th = time * 0.42;
+    const phase = Math.floor((time % (PHASE*ORDERS.length)) / PHASE);
+    const so = ORDERS[phase];
+    const r = so / 2;
+    const pt = (time % PHASE) / GROW;                    // arm growth 0 → 1
+    const grown = Math.min(pt, 1) * r;
+
+    // rotate about the vertical axis, then project
+    const proj = (x, y, z) => {
+      const rx = x*Math.cos(th) - y*Math.sin(th);
+      const ry = x*Math.sin(th) + y*Math.cos(th);
+      return { sx: CX + rx*AX, sy: CY + ry*AY - z*AZ, depth: ry };
+    };
+
+    // axis guides
+    let ax = '';
+    [[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]].forEach(d => {
+      const e = proj(d[0]*r, d[1]*r, d[2]*r);
+      ax += `<line x1="${CX}" y1="${CY}" x2="${e.sx.toFixed(1)}" y2="${e.sy.toFixed(1)}" `
+          + `stroke="#2C5D74" stroke-width="1"/>`;
+    });
+    gAxes.innerHTML = ax;
+
+    // arm points, painted back to front
+    const pts = [];
+    [[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]].forEach(d => {
+      for(let k=1; k<=r; k++){
+        if(k > grown + 0.001) continue;
+        pts.push(proj(d[0]*k, d[1]*k, d[2]*k));
+      }
+    });
+    pts.sort((p, q) => p.depth - q.depth);
+
+    let s = '';
+    pts.forEach(p => {
+      const near = (p.depth + 6) / 12;                   // crude depth cue
+      const rad = 3.6 + 1.8*Math.max(0, Math.min(1, near));
+      const op  = 0.45 + 0.45*Math.max(0, Math.min(1, near));
+      s += `<circle cx="${p.sx.toFixed(1)}" cy="${p.sy.toFixed(1)}" r="${rad.toFixed(1)}" `
+         + `fill="#4CC9D4" fill-opacity="${op.toFixed(2)}" stroke="#4CC9D4" stroke-width="1.1"/>`;
+    });
+    s += `<circle cx="${CX}" cy="${CY}" r="8" fill="#4CC9D4" stroke="#EAF2F0" stroke-width="1.6"/>`;
+    gPts.innerHTML = s;
+
+    const shown = Math.floor(grown + 0.001);
+    gS3Lab.innerHTML =
+        `<text class="t-lab" x="530" y="300" fill="#8FE1E8">space order ${so}</text>`
+      + `<text class="t-small" x="530" y="318">r = ${r} · ${6*r + 1} points when fully grown</text>`
+      + `<text class="t-small" x="868" y="318" text-anchor="end" fill="#6E8B97">${6*shown + 1} drawn</text>`;
+  }
+
+  function frame(ts){
+    if(t0 === null) t0 = ts;
+    elapsed = (ts - t0) / 1000;
+    draw1D(elapsed); draw3D(elapsed);
+    if(playing) raf = requestAnimationFrame(frame);
+  }
+
+  function start(){
+    playing = true; btn.textContent = 'Pause';
+    t0 = null; raf = requestAnimationFrame(ts => { t0 = ts - elapsed*1000; frame(ts); });
+  }
+  function stop(){
+    playing = false; btn.textContent = 'Play';
+    if(raf) cancelAnimationFrame(raf);
+  }
+
+  btn.addEventListener('click', () => playing ? stop() : start());
+
+  if(reduced){
+    elapsed = 4.2;                                        // a representative still frame
+    draw1D(elapsed); draw3D(elapsed);
+    playing = false; btn.textContent = 'Play';
+    document.getElementById('animnote').textContent = 'motion paused — your system asks for reduced motion';
+  } else {
+    start();
+  }
+})();
+
+/* ---------- Figure 02: source and receiver on one lattice ---------- */
+(function(){
+  const svg = document.getElementById('f2fig');
+  if(!svg) return;
+
+  const G = {
+    grid:   document.getElementById('f2grid'),
+    cells:  document.getElementById('f2cells'),
+    lat:    document.getElementById('f2lat'),
+    arrows: document.getElementById('f2arrows'),
+    pulse:  document.getElementById('f2pulse'),
+    corners:document.getElementById('f2corners'),
+    marks:  document.getElementById('f2marks'),
+    panel:  document.getElementById('f2panel')
+  };
+  const hit = document.getElementById('f2hit');
+
+  const COLS = 7, ROWS = 5, SP = 62, OX = 96, OY = 76;
+  const gx = i => OX + i*SP, gy = j => OY + j*SP;
+  const MINX = gx(0)+3, MAXX = gx(COLS-1)-3, MINY = gy(0)+3, MAXY = gy(ROWS-1)-3;
+
+  const OPS = [
+    { id:'src', label:'Source',   sub:'injection · scatter out', col:'#F2A03D',
+      x: gx(1) + 0.35*SP, y: gy(1) + 0.80*SP, out:true,  top: 38 },
+    { id:'rec', label:'Receiver', sub:'interpolation · gather in', col:'#4CC9D4',
+      x: gx(4) + 0.60*SP, y: gy(2) + 0.30*SP, out:false, top: 244 }
+  ];
+
+  let active = null, t0 = null, raf = null;
+  const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let gl = '';
+  for(let i=0;i<COLS;i++) gl += `<line x1="${gx(i)}" y1="${gy(0)}" x2="${gx(i)}" y2="${gy(ROWS-1)}" stroke="#173648" stroke-width="1"/>`;
+  for(let j=0;j<ROWS;j++) gl += `<line x1="${gx(0)}" y1="${gy(j)}" x2="${gx(COLS-1)}" y2="${gy(j)}" stroke="#173648" stroke-width="1"/>`;
+  G.grid.innerHTML = gl;
+
+  function weights(op){
+    let i = Math.max(0, Math.min(COLS-2, Math.floor((op.x - OX)/SP)));
+    let j = Math.max(0, Math.min(ROWS-2, Math.floor((op.y - OY)/SP)));
+    const dx = (op.x - gx(i))/SP, dy = (op.y - gy(j))/SP;
+    return { i, j, dx, dy, w: [
+      { k:'w₀₀', x:gx(i),   y:gy(j),   v:(1-dx)*(1-dy) },
+      { k:'w₁₀', x:gx(i+1), y:gy(j),   v:dx*(1-dy) },
+      { k:'w₀₁', x:gx(i),   y:gy(j+1), v:(1-dx)*dy },
+      { k:'w₁₁', x:gx(i+1), y:gy(j+1), v:dx*dy }
+    ]};
+  }
+
+  function render(time){
+    let lp = '';
+    for(let a=0;a<COLS;a++) for(let b=0;b<ROWS;b++)
+      lp += `<circle cx="${gx(a)}" cy="${gy(b)}" r="3.4" fill="#0D2531" stroke="#2C5D74" stroke-width="1"/>`;
+    G.lat.innerHTML = lp;
+
+    let cells='', arrows='', corners='', marks='', pulses='', panel='';
+    const ph = time === null ? 0 : (time % 1.8) / 1.8;
+
+    OPS.forEach(op => {
+      const W = weights(op);
+      cells += `<rect x="${gx(W.i)}" y="${gy(W.j)}" width="${SP}" height="${SP}" fill="${op.col}" `
+             + `fill-opacity=".07" stroke="${op.col}" stroke-width="1" stroke-dasharray="3 3"/>`;
+
+      W.w.forEach(p => {
+        const from = op.out ? [op.x, op.y] : [p.x, p.y];
+        const to   = op.out ? [p.x, p.y] : [op.x, op.y];
+        arrows += `<line x1="${from[0].toFixed(1)}" y1="${from[1].toFixed(1)}" x2="${to[0].toFixed(1)}" y2="${to[1].toFixed(1)}" `
+                + `stroke="${op.col}" stroke-width="${(0.8 + 2.2*p.v).toFixed(2)}" stroke-opacity="${(0.22 + 0.58*p.v).toFixed(2)}"/>`;
+
+        // source draws as a ring, receiver as a disc, so shared corners nest instead of muddying
+        corners += op.out
+          ? `<circle cx="${p.x}" cy="${p.y}" r="${(5 + 7*p.v).toFixed(1)}" fill="${op.col}" fill-opacity="${(0.13 + 0.30*p.v).toFixed(2)}" stroke="${op.col}" stroke-width="1.5"/>`
+          : `<circle cx="${p.x}" cy="${p.y}" r="${(3.2 + 4.6*p.v).toFixed(1)}" fill="${op.col}" fill-opacity="${(0.45 + 0.5*p.v).toFixed(2)}"/>`;
+
+        if(time !== null && p.v > 0.02){
+          const e = ph < 0.85 ? ph/0.85 : 1;
+          const px = from[0] + (to[0]-from[0])*e, py = from[1] + (to[1]-from[1])*e;
+          const fade = ph < 0.85 ? 1 - Math.pow(e,3)*0.35 : 0;
+          pulses += `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="${(1.8 + 2.8*p.v).toFixed(1)}" `
+                  + `fill="#EAF2F0" fill-opacity="${(fade*(0.3 + 0.55*p.v)).toFixed(2)}"/>`;
+        }
+      });
+
+      marks += op.out
+        ? `<path d="M${op.x} ${op.y-13} l4 10 l10.6 0 l-8.5 6.5 l3.2 10.3 l-9.3 -6.1 l-9.3 6.1 l3.2 -10.3 l-8.5 -6.5 l10.6 0 Z" fill="${op.col}" stroke="#071620" stroke-width="1"/>`
+        : `<rect x="${op.x-8}" y="${op.y-8}" width="16" height="16" fill="${op.col}" stroke="#071620" stroke-width="1" transform="rotate(45 ${op.x} ${op.y})"/>`;
+      marks += `<text class="t-small" x="${op.x}" y="${op.y+27}" text-anchor="middle" fill="${op.col}">${op.label.toLowerCase()}</text>`;
+
+      // ---- right-hand readout for this operator ----
+      const sum = W.w.reduce((a,p) => a + p.v, 0);
+      panel += `<text class="t-lab" x="548" y="${op.top}" fill="${op.col}">${op.label}</text>`
+             + `<text class="t-small" x="548" y="${op.top+18}">${op.sub}</text>`
+             + `<text class="t-small" x="548" y="${op.top+36}" fill="#CFE2E8">x = ${(W.i+W.dx).toFixed(2)}, z = ${(W.j+W.dy).toFixed(2)}`
+             + `   ·   cell (${W.i}, ${W.j}) → (${W.i+1}, ${W.j+1})</text>`;
+      W.w.forEach((p, n) => {
+        const y = op.top + 64 + n*30;
+        panel += `<text class="t-small" x="548" y="${y+4}" fill="${op.col}">${p.k}</text>`
+               + `<rect x="592" y="${y-8}" width="210" height="15" rx="2" fill="#0D2531" stroke="#1E4457"/>`
+               + `<rect x="592" y="${y-8}" width="${(210*p.v).toFixed(1)}" height="15" rx="2" fill="${op.col}" fill-opacity=".7"/>`
+               + `<text class="t-small" x="812" y="${y+4}" fill="#CFE2E8">${p.v.toFixed(3)}</text>`;
+      });
+      panel += `<text class="t-small" x="548" y="${op.top+180}" fill="#6E8B97">Σ weights</text>`
+             + `<text class="t-small" x="640" y="${op.top+180}" fill="#8FE1E8">${sum.toFixed(3)}</text>`;
+    });
+
+    G.cells.innerHTML = cells;
+    G.arrows.innerHTML = arrows;
+    G.corners.innerHTML = corners;
+    G.marks.innerHTML = marks;
+    G.pulse.innerHTML = pulses;
+    G.panel.innerHTML = panel;
+  }
+
+  function toSvg(e){
+    const r = svg.getBoundingClientRect();
+    return { x: (e.clientX - r.left) * 900 / r.width, y: (e.clientY - r.top) * 440 / r.height };
+  }
+  function nearest(p){
+    let best = null, bd = Infinity;
+    OPS.forEach(op => {
+      const d = (op.x-p.x)**2 + (op.y-p.y)**2;
+      if(d < bd){ bd = d; best = op; }
+    });
+    return best;
+  }
+  function place(e){
+    const p = toSvg(e);
+    if(!active) return;
+    active.x = Math.max(MINX, Math.min(MAXX, p.x));
+    active.y = Math.max(MINY, Math.min(MAXY, p.y));
+    if(!raf) render(null);
+  }
+  hit.addEventListener('pointerdown', e => {
+    active = nearest(toSvg(e));
+    hit.setPointerCapture(e.pointerId);
+    hit.style.cursor = 'grabbing';
+    place(e);
+  });
+  hit.addEventListener('pointermove', e => { if(active) place(e); });
+  hit.addEventListener('pointerup', e => {
+    active = null; hit.style.cursor = 'grab';
+    try { hit.releasePointerCapture(e.pointerId); } catch(_){}
+  });
+  hit.addEventListener('pointercancel', () => { active = null; hit.style.cursor = 'grab'; });
+
+  if(reduced){
+    render(null);
+    document.getElementById('f2hint').textContent = 'drag either marker · motion reduced';
+  } else {
+    const loop = ts => { if(t0 === null) t0 = ts; render((ts - t0)/1000); raf = requestAnimationFrame(loop); };
+    raf = requestAnimationFrame(loop);
+  }
+})();
+
+/* ---------- Primer: tiling families on the iteration-point lattice ---------- */
+(function(){
+  const svg = document.getElementById('tilefam');
+  if(!svg) return;
+
+  const NX = 13, NT = 6, S = 26, PAD = 16;
+  const TC = ['#4CC9D4', '#9B8CFF', '#F2A03D'];   // tile identity, not semantic role
+
+  const P = {
+    A:{ px:48, py:104 }, B:{ px:500, py:104 },
+    C:{ px:48, py:460 }, D:{ px:500, py:460 }
+  };
+  Object.keys(P).forEach(k => {
+    const p = P[k];
+    p.key = k;
+    p.x0 = p.px - PAD;  p.x1 = p.px + (NX-1)*S + PAD;
+    p.y0 = p.py - PAD;  p.y1 = p.py + (NT-1)*S + PAD;
+  });
+
+  const X = (p,x) => p.px + x*S;
+  const Y = (p,t) => p.py + (NT-1-t)*S;
+  const poly = (p, pts, col, op) =>
+    `<polygon points="${pts.map(q => X(p,q[0]).toFixed(1)+','+Y(p,q[1]).toFixed(1)).join(' ')}" `
+    + `fill="${col}" fill-opacity="${op}" stroke="${col}" stroke-width="1.15" stroke-opacity=".55"/>`;
+  const dot = (p,x,t,c,ring) =>
+    `<circle cx="${X(p,x)}" cy="${Y(p,t)}" r="3.8" fill="${c}" fill-opacity=".9"/>`
+    + (ring ? `<circle cx="${X(p,x)}" cy="${Y(p,t)}" r="7.4" fill="none" stroke="#EAF2F0" stroke-width="1.3" stroke-opacity=".8"/>` : '');
+
+  // panel shell: a box that nothing is allowed to escape
+  function box(p, accent){
+    return `<clipPath id="clip-${p.key}"><rect x="${p.x0}" y="${p.y0}" width="${p.x1-p.x0}" height="${p.y1-p.y0}" rx="3"/></clipPath>`
+         + `<rect x="${p.x0}" y="${p.y0}" width="${p.x1-p.x0}" height="${p.y1-p.y0}" rx="3" `
+         + `fill="#081A24" stroke="${accent || '#1E4457'}" stroke-width="1" stroke-opacity="${accent ? .8 : 1}"/>`;
+  }
+  const clipped = (p, inner) => `<g clip-path="url(#clip-${p.key})">${inner}</g>`;
+
+  // identical caption rows in every panel, so the four line up as one comparison
+  function text(p, title, sub, start, startCol, body, tag, tagCol){
+    let s = `<text class="t-lab" x="${p.px}" y="${p.y0-34}" fill="#EAF2F0">${title}</text>`
+          + `<text class="t-small" x="${p.px}" y="${p.y0-16}" fill="#6E8B97">${sub}</text>`
+          + `<text class="t-small" x="${p.x1}" y="${p.y0-16}" text-anchor="end" fill="#3F6274">x →   t ↑</text>`
+          + `<text class="t-small" x="${p.px}" y="${p.y1+28}" fill="#6E8B97">start-up</text>`
+          + `<text class="t-small" x="${p.px+66}" y="${p.y1+28}" fill="${startCol}">${start}</text>`;
+    body.forEach((l,i) => { s += `<text class="t-small" x="${p.px}" y="${p.y1+54+i*15}">${l}</text>`; });
+    s += `<text class="t-small" x="${p.px}" y="${p.y1+54+body.length*15+10}" fill="${tagCol}">${tag}</text>`;
+    return s;
+  }
+
+  // ---------- A · spatial blocking: one timestep per tile ----------
+  function A(){
+    const p = P.A; let g = '';
+    for(let t=0;t<NT;t++)
+      for(let b=0;b<4;b++){
+        const x0=b*4, x1=Math.min(x0+3,NX-1);
+        if(x0>NX-1) continue;
+        g += `<rect x="${X(p,x0)-10}" y="${Y(p,t)-10}" width="${(x1-x0)*S+20}" height="20" rx="2" `
+           + `fill="${TC[b%3]}" fill-opacity=".08" stroke="${TC[b%3]}" stroke-width="1.15" stroke-opacity=".55"/>`;
+      }
+    for(let x=0;x<NX;x++) for(let t=0;t<NT;t++) g += dot(p,x,t,TC[Math.floor(x/4)%3]);
+    return box(p) + clipped(p,g) + text(p,'spatial blocking','no time tiling','not applicable','#6E8B97',[
+      'The tile spans a single timestep, so every row',
+      'begins by reloading. Reuse is bounded by the',
+      'stencil width and never by time.'
+    ],'the baseline this paper beats','#6E8B97');
+  }
+
+  // ---------- B · parallelogram: skewed tiles ----------
+  function B(){
+    const p = P.B; let g = '';
+    for(let k=-2;k<=5;k++)
+      g += poly(p, [[4*k,0],[4*k+4,0],[4*k+4-(NT-1),NT-1],[4*k-(NT-1),NT-1]], TC[((k%3)+3)%3], .09);
+    for(let x=0;x<NX;x++) for(let t=0;t<NT;t++)
+      g += dot(p,x,t,TC[((Math.floor((x+t)/4))%3+3)%3]);
+    return box(p,'#9B8CFF') + clipped(p,g) + text(p,'parallelogram','skewed · wavefront','pipelined · 1 → 2 → 3','#E8574B',[
+      'Tiles lean by the stencil radius, so every',
+      'dependence points backwards. Nothing is',
+      'computed twice, but tiles start in sequence.'
+    ],'used in this paper · after Yount & Duran','#F2A03D');
+  }
+
+  // ---------- C · overlapped: tiles recompute a shared margin ----------
+  function C(){
+    const p = P.C; let g = '';
+    const D = 3, lo = (b,τ) => 4*b-(D-1-τ), hi = (b,τ) => 4*b+3+(D-1-τ);
+    for(let band=0;band<2;band++)
+      for(let b=0;b<3;b++){
+        const t0 = band*D, t1 = t0+D-1;
+        g += poly(p, [[lo(b,0)-0.35,t0-0.35],[hi(b,0)+0.35,t0-0.35],
+                      [hi(b,D-1)+0.35,t1+0.35],[lo(b,D-1)-0.35,t1+0.35]], TC[b%3], .09);
+      }
+    for(let x=0;x<NX;x++) for(let t=0;t<NT;t++){
+      const band=Math.floor(t/D), τ=t-band*D;
+      let n=0; for(let b=0;b<3;b++) if(x>=lo(b,τ) && x<=hi(b,τ)) n++;
+      g += dot(p,x,t,TC[Math.floor(x/4)%3], n>1);
+    }
+    return box(p) + clipped(p,g) + text(p,'overlapped','trapezoidal','concurrent · bought with redundancy','#F2A03D',[
+      'Tiles widen at the base and recompute the',
+      'shared margin — ringed points are done twice.',
+      'Redundant flops buy independence.'
+    ],'suits GPUs and distributed memory','#6E8B97');
+  }
+
+  // ---------- D · diamond: cut along both dependence directions ----------
+  function D_(){
+    const p = P.D; let g = '';
+    for(let u=-4;u<=6;u++)
+      for(let v=-4;v<=6;v++){
+        const cx = 2*u + 2*v + 2, ct = 2*u - 2*v;
+        if(cx < -4 || cx > NX+3 || ct < -4 || ct > NT+3) continue;
+        g += poly(p, [[cx-2,ct],[cx,ct+2],[cx+2,ct],[cx,ct-2]], TC[((u+v)%3+3)%3], .09);
+      }
+    for(let x=0;x<NX;x++) for(let t=0;t<NT;t++){
+      const u = Math.floor((x+t)/4), v = Math.floor((x-t)/4);
+      g += dot(p,x,t,TC[((u+v)%3+3)%3]);
+    }
+    return box(p) + clipped(p,g) + text(p,'diamond','cut along both dependences','concurrent · no redundancy','#4CC9D4',[
+      'Every tile on the base face can start at once,',
+      'so the schedule is load balanced and nothing',
+      'is computed twice.'
+    ],'split and hexagonal variants extend this','#6E8B97');
+  }
+
+  svg.innerHTML = A() + B() + C() + D_();
+})();
+
+/* ---------- index highlighting ---------- */
+(function(){
+  const links = [...document.querySelectorAll('.index a')];
+  const plates = links.map(a => document.querySelector(a.getAttribute('href')));
+  if(!plates.length || !plates[0]) return;
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(en => {
+      if(en.isIntersecting){
+        links.forEach(l => l.classList.remove('on'));
+        const i = plates.indexOf(en.target);
+        if(i > -1) links[i].classList.add('on');
+      }
+    });
+  }, {rootMargin:'-30% 0px -60% 0px'});
+  plates.forEach(p => p && io.observe(p));
+})();
+</script>
+
+</body>
+</html>
