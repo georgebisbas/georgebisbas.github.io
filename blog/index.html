@@ -38,12 +38,25 @@
             font-family: var(--mono);
             letter-spacing: -0.01em;
         }
-        .back-link {
+        .nav-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 1.5em;
+        }
+        .nav-btn {
             display: inline-block;
             font-family: var(--mono);
-            font-size: 0.85em;
-            color: var(--text-muted);
-            margin-bottom: 1.5em;
+            font-size: 0.82em;
+            padding: 5px 10px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background: rgba(57, 197, 207, 0.12);
+            color: var(--accent);
+        }
+        .nav-btn:hover {
+            background: rgba(57, 197, 207, 0.22);
+            text-decoration: none;
         }
         ul.post-list {
             list-style: none;
@@ -71,7 +84,9 @@
 </head>
 <body>
     <div class="page">
-        <a class="back-link" href="../index.html">&larr; Back to homepage</a>
+        <div class="nav-actions">
+            <a class="nav-btn" href="../index.html">&larr; Homepage</a>
+        </div>
         <h1>Blog</h1>
         <ul class="post-list">
             <li>

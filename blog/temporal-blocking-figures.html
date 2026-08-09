@@ -32,6 +32,10 @@ body{
 
 /* ---------- page frame ---------- */
 .wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px}
+.topnav{
+  display:flex;flex-wrap:wrap;gap:10px;padding:28px 0 0;
+}
+.topnav .btn{text-decoration:none}
 
 /* ---------- masthead ---------- */
 .mast{padding:72px 0 40px;border-bottom:1px solid var(--hair)}
@@ -378,6 +382,11 @@ text{font-family:"IBM Plex Mono",monospace;fill:var(--haze)}
 <body>
 
 <div class="wrap">
+
+<nav class="topnav" aria-label="Site">
+  <a class="btn" href="../index.html">&larr; Homepage</a>
+  <a class="btn" href="index.html">Blog</a>
+</nav>
 
 <header class="mast">
   <div class="eyebrow">IPDPS 2021 · arXiv:2010.10248</div>
