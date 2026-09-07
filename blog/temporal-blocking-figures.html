@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Temporal blocking with sparse off-the-grid sources — figure plate</title>
+<meta name="description" content="Interactive figure plate for the IPDPS 2021 paper: temporal blocking of finite-difference stencil operators with sparse off-the-grid sources (arXiv:2010.10248).">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230d1117'/%3E%3Ctext x='50' y='70' font-family='monospace' font-size='58' fill='%2339c5cf' text-anchor='middle'%3E%3E_%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Spectral:ital,wght@0,300;0,400;1,400&display=swap" rel="stylesheet">
@@ -155,13 +157,25 @@ input[type=range]:focus-visible{outline:2px solid var(--grid);outline-offset:4px
 .verdict.ok{border-left-color:var(--grid);color:#9FE3E8}
 
 /* ---------- explainer aside ---------- */
-.aside{margin:30px 0 0;padding:22px 26px;border-left:2px solid var(--src);background:rgba(242,160,61,.045);max-width:70ch}
-.aside h4{
+.explain{margin:30px 0 0;padding:22px 26px;border-left:2px solid var(--src);background:rgba(242,160,61,.045);max-width:70ch}
+.explain h4{
   font-family:"Archivo",sans-serif;font-size:12px;letter-spacing:.16em;text-transform:uppercase;
   color:var(--src);font-weight:600;margin:0 0 12px;
 }
-.aside p{margin:0 0 12px;font-size:16.5px;color:#C9DBE1;line-height:1.6}
-.aside p:last-child{margin-bottom:0}
+.explain p{margin:0 0 12px;font-size:16.5px;color:#C9DBE1;line-height:1.6}
+.explain p:last-child{margin-bottom:0}
+
+/* ---------- provenance: how the figures were made ---------- */
+.provenance{margin:36px 0 0;padding:22px 26px;border:1px solid var(--hair);border-radius:3px;
+  background:rgba(18,49,65,.34);max-width:82ch}
+.prov-k{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--src);margin-bottom:12px}
+.prov-body{font-size:15.5px;line-height:1.62;color:#C9DBE1}
+.prov-list{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:10px}
+.prov-list li{font-size:14.5px;line-height:1.6;color:#B9CFD7;padding-left:14px;border-left:1px solid var(--hair)}
+.pl-k{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:#8FE1E8;margin-right:6px}
+.prov-foot{margin:14px 0 0;font-family:"IBM Plex Mono",monospace;font-size:11px;color:#5A7C8B}
 
 /* ---------- playback bar ---------- */
 .playbar{
@@ -319,11 +333,11 @@ p.note{margin:12px 0 0;font-size:11.5px;line-height:1.6;color:#6E8B97}
 .publine a:hover{border-bottom-color:var(--grid)}
 
 /* ---------- aside: quiet reference block ---------- */
-.aside{
+aside.aside{
   display:grid;grid-template-columns:1fr;gap:16px;
   margin:0;padding:26px 0 30px;border-bottom:1px solid var(--hair);
 }
-@media(min-width:820px){.aside{grid-template-columns:186px 1fr;gap:36px}}
+@media(min-width:820px){aside.aside{grid-template-columns:186px 1fr;gap:36px}}
 .aside-k{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--haze)}
 .aside h3{
   font-family:"Archivo",sans-serif;font-weight:500;font-size:19px;letter-spacing:-.01em;
@@ -418,7 +432,7 @@ text{font-family:"IBM Plex Mono",monospace;fill:var(--haze)}
       <li><span class="pl-k">added analysis</span> The tile-width model in Fig. 10, and the reading of Table I that goes with it, are <em>not</em> results from the paper. They are analysis added here and are flagged as such in place, including one point where the model and Table I disagree.</li>
       <li><span class="pl-k">illustrative geometry</span> Tile counts, block widths and skew values in the interactive figures are chosen for legibility, not to match any benchmarked configuration.</li>
     </ul>
-    <p class="prov-foot">Worth checking before any of it is reused in a talk or a draft.</p>
+    <p class="prov-foot">Check these claims against the paper before reusing any of this in a talk or draft.</p>
   </div>
 </section>
 
@@ -440,6 +454,7 @@ text{font-family:"IBM Plex Mono",monospace;fill:var(--haze)}
 <nav class="index" aria-label="Figure index">
   <ol>
     <li><a href="#devito"><span class="n">··</span> &nbsp;Devito</a></li>
+    <li><a href="#physics"><span class="n">··</span> &nbsp;The physics</a></li>
     <li><a href="#primer"><span class="n">··</span> &nbsp;What is time-tiling</a></li>
     <li><a href="#f1"><span class="n">01</span> &nbsp;The stencil</a></li>
     <li><a href="#f2"><span class="n">02</span> &nbsp;Off the grid</a></li>
@@ -483,12 +498,78 @@ text{font-family:"IBM Plex Mono",monospace;fill:var(--haze)}
       <a href="https://github.com/devitocodes/devito" target="_blank" rel="noopener">source</a>
       <a href="https://github.com/devitocodes/devito/tree/main/examples" target="_blank" rel="noopener">examples &amp; tutorials</a>
       <a href="https://github.com/devitocodes/devito/blob/main/FAQ.md" target="_blank" rel="noopener">FAQ</a>
-      <a href="https://github.com/georgebisbas/devito" target="_blank" rel="noopener">the fork used here</a>
+      <a href="https://github.com/georgebisbas/devito/releases/tag/v0.9-alpha" target="_blank" rel="noopener">the fork used here · v0.9-alpha</a>
       <a href="https://doi.org/10.5194/gmd-12-1165-2019" target="_blank" rel="noopener">cite: GMD 2019</a>
       <a href="https://doi.org/10.1145/3374916" target="_blank" rel="noopener">ACM TOMS 2020</a>
     </p>
   </div>
 </aside>
+
+<!-- ============ SYMBOLIC PHYSICS ============ -->
+<section class="plate" id="physics">
+  <div class="plate-head">
+    <div class="fignum">SYMBOLS</div>
+    <h2>The physics, written once</h2>
+  </div>
+  <p class="deck">The ten figures that follow all turn on a single pattern: a residual written symbolically, rearranged into an explicit update, then handed to the compiler. The three propagators benchmarked in Fig. 09 are three instances of it, and the stencil radius that drives every legality argument on this page is set here, as <span class="mono">space_order</span>.</p>
+
+  <div class="panel">
+    <div class="codepair">
+      <div>
+        <div class="codehead"><span class="tag ok">the model</span> isotropic acoustic · continuous</div>
+        <div class="code"><ol>
+          <li>m · ∂²u/∂t² − ∇²u + damp · ∂u/∂t = <span class="fn">q</span></li>
+          <li class="c"># m = 1/c² — squared slowness</li>
+          <li class="c"># q enters through src.inject (Fig. 07)</li>
+          <li class="c"># damp = absorbing boundary layer</li>
+        </ol></div>
+      </div>
+      <div>
+        <div class="codehead"><span class="tag ok">the same, in Devito</span> residual → solve → Eq</div>
+        <div class="code"><ol>
+          <li><span class="v">eq</span> = <span class="fn">Eq</span>(m * u.dt2 - u.laplace + damp * u.dt, <span class="num">0</span>)</li>
+          <li><span class="v">stencil</span> = <span class="fn">Eq</span>(u.forward, <span class="fn">solve</span>(eq, u.forward))</li>
+          <li class="c"># solve() isolates u.forward — SymPy algebra,</li>
+          <li class="c"># not a hand-derived update (Fig. 07, b4)</li>
+        </ol></div>
+      </div>
+    </div>
+
+    <div class="subhead mono" style="margin-top:30px">What the two derivatives expand into</div>
+    <table class="shapes">
+      <thead>
+        <tr><th>Symbol</th><th>Expands to</th><th>Where it bites</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="mono">u.dt2</span></td><td>(u(t+1) − 2·u(t) + u(t−1)) / dt²</td><td>time_order = 2 → three addressable timesteps</td></tr>
+        <tr><td><span class="mono">u.laplace</span></td><td>∂²u/∂x² + ∂²u/∂y² + ∂²u/∂z², each a centred difference</td><td>space_order = so → stencil radius r = so/2</td></tr>
+        <tr><td><span class="mono">∂²u/∂x²</span></td><td>Σ cₖ · u(x + k·h) for k ∈ [−r, r]</td><td>the star of Fig. 01 · 6r + 1 points in 3D</td></tr>
+        <tr><td>one cₖ</td><td>one stencil weight on that arrow</td><td>the arrows Fig. 03's skew must satisfy</td></tr>
+      </tbody>
+    </table>
+
+    <div class="subhead mono" style="margin-top:26px">The other two propagators — same pattern, heavier symbols</div>
+    <table class="shapes">
+      <thead>
+        <tr><th>Kernel</th><th>Symbolic form</th><th>What changes</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>anisotropic acoustic (TTI)</td>
+          <td>coupled u, v · second derivatives along tilted axes</td>
+          <td>rotation by θ and anisotropy ε, δ inside the derivatives — the operation count climbs, which is why Fig. 09 gives it less back from cache</td>
+        </tr>
+        <tr>
+          <td>isotropic elastic</td>
+          <td>velocity–stress system, first order in time</td>
+          <td>9 state fields instead of 1, and a shorter time dependence — the working set Fig. 10 counts multiplies by its 18 resident planes</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="cap">Nothing on this page depends on the acoustic equation specifically. The tiling argument needs only that the update is explicit, local and affine — properties the compiler reads off the symbolic form rather than off any particular PDE. The same pipeline serves TTI and elastic in Fig. 09 without modification, and the precomputation of Fig. 06 observes the injection operator instead of modelling it, for the same reason.</p>
+</section>
 
 <!-- ============ PRIMER ============ -->
 <section class="plate" id="primer">
@@ -496,7 +577,7 @@ text{font-family:"IBM Plex Mono",monospace;fill:var(--haze)}
     <div class="fignum">PRIMER</div>
     <h2>Time-tiling, briefly</h2>
   </div>
-  <p class="deck">Temporal blocking reorders the loop nest so that a cached block is advanced through several timesteps before the next block is touched — one trip to memory serving many updates instead of one. It is worth doing because the field dwarfs the cache: 512³ in single precision is 512 MiB against roughly 48 MiB of last-level cache, with hundreds of timesteps to get through. The transformation is a loop interchange, sliding time inward:</p>
+  <p class="deck">Temporal blocking reorders the loop nest so that a cached block is advanced through several timesteps before the next block is touched — one trip to memory serving many updates instead of one. It pays off because the field dwarfs the cache: 512³ in single precision is 512 MiB against roughly 48 MiB of last-level cache, with hundreds of timesteps to get through. The transformation is a loop interchange, sliding time inward:</p>
 
   <div class="panel">
     <div class="codepair">
@@ -641,11 +722,11 @@ text{font-family:"IBM Plex Mono",monospace;fill:var(--haze)}
   </div>
   <p class="deck">Spatial blocking cuts the domain into cache-sized tiles, then throws the data away at the end of every timestep. Temporal blocking keeps going — advance one tile through several timesteps before touching the next. That is only legal if everything a point reads has already been computed. Tiles run left to right, so the dangerous dependence is the one reaching <em>right</em>, into a tile that has not started. Skewing leans the tiles to pull it back.</p>
 
-  <div class="aside">
+  <div class="explain">
     <h4>Why the minimum skew is the stencil radius</h4>
     <p>Think of the stencil as a speed limit. A point at <span class="mono">t+1</span> reads <span class="mono">r</span> cells to either side at <span class="mono">t</span>; those points read <span class="mono">r</span> cells further at <span class="mono">t-1</span>. Influence therefore spreads outward at exactly <span class="mono">r</span> cells per timestep — a discrete light cone, and the cone widens whether you like it or not.</p>
     <p>A tile is a promise to compute a region without consulting its right-hand neighbour. To keep that promise, the tile's right boundary has to retreat at least as fast as the cone widens. Retreat by less than <span class="mono">r</span> per timestep and the cone escapes; retreat by exactly <span class="mono">r</span> and the boundary and the cone travel together. Hence <span class="mono">s ≥ r</span>, where <span class="mono">r = space_order / 2</span>.</p>
-    <p>The cost is the flip side of the same geometry, and it is worth being exact about what it is. Skewing recomputes nothing — the iteration space is still partitioned, every point updated once. What it costs is <em>footprint</em>. Carried through <span class="mono">T</span> timesteps, a tile of width <span class="mono">W</span> sweeps across <span class="mono">W + r·T</span> columns while updating only <span class="mono">W</span> of them, so the data it must hold grows with the lean even though the work does not. On top of that, tiles start in sequence rather than together, so there is pipeline fill and drain. That is the tension: a taller time block buys reuse, a wider stencil spends it, and by space order 12 the second term wins. Fig. 10 puts numbers on it.</p>
+    <p>The cost is the same geometry working against you. Skewing recomputes nothing — the iteration space is still partitioned, every point updated once. What it costs is <em>footprint</em>. Carried through <span class="mono">T</span> timesteps, a tile of width <span class="mono">W</span> sweeps across <span class="mono">W + r·T</span> columns while updating only <span class="mono">W</span> of them, so the data it must hold grows with the lean even though the work does not. On top of that, tiles start in sequence rather than together, so there is pipeline fill and drain. That is the tension: a taller time block buys reuse, a wider stencil spends it, and by space order 12 the second term wins. Fig. 10 puts numbers on it.</p>
   </div>
 
   <div class="panel">
@@ -763,7 +844,7 @@ text{font-family:"IBM Plex Mono",monospace;fill:var(--haze)}
     </div>
   </div>
   <p class="cap">Every dot is a grid point at one timestep; every parallelogram is one space–time tile, numbered in execution order. Press play and the sweep runs the way the generated code does: tile ① is carried through all four timesteps before tile ② begins, so its data stays in cache for the whole time block. The white marker is the point being updated, and the arrows are the <span class="mono">2r+1</span> values it reads from the row below. At skew 0, watch the right-hand arrows go red every time the sweep reaches a tile's trailing edge: it is asking for values from a tile that has not run. Raise the skew to <span class="mono">r</span> and the counter stays at zero for the whole run. </p>
-  <p class="cap">Raise it beyond r and the run is still clean, but the tile now sweeps across more columns than it updates for no extra reuse. The minimum legal skew <em>is</em> r, so a wider stencil forces a steeper lean whether or not you want one. This is why the paper's 1.6× at space order 4 falls to about 1.13× at order 8 and vanishes by order 12.</p>
+  <p class="cap">Raise it beyond r and the run is still clean, but the tile now sweeps across more columns than it updates for no extra reuse. The minimum legal skew <em>is</em> r, so a wider stencil forces a steeper lean whether or not you want one. The same geometry explains the paper's numbers: 1.6× at space order 4, about 1.13× at order 8, gone by order 12.</p>
 </section>
 
 <!-- ============ FIGURE 4 ============ -->
@@ -998,7 +1079,7 @@ text{font-family:"IBM Plex Mono",monospace;fill:var(--haze)}
           <line x1="72" y1="0" x2="72" y2="108"/><line x1="108" y1="0" x2="108" y2="108"/>
           <line x1="144" y1="0" x2="144" y2="108"/><line x1="180" y1="0" x2="180" y2="108"/>
         </g>
-        <g id="f5latA" fill="#0D2531" stroke="#2C5D74" stroke-width="1"></g>
+        <g id="f6latA" fill="#0D2531" stroke="#2C5D74" stroke-width="1"></g>
         <g stroke="#F2A03D" stroke-width="1.2" stroke-dasharray="3 3">
           <line x1="72" y1="36" x2="94" y2="54"/><line x1="108" y1="36" x2="94" y2="54"/>
           <line x1="72" y1="72" x2="94" y2="54"/><line x1="108" y1="72" x2="94" y2="54"/>
@@ -1025,7 +1106,7 @@ text{font-family:"IBM Plex Mono",monospace;fill:var(--haze)}
           <line x1="72" y1="0" x2="72" y2="108"/><line x1="108" y1="0" x2="108" y2="108"/>
           <line x1="144" y1="0" x2="144" y2="108"/><line x1="180" y1="0" x2="180" y2="108"/>
         </g>
-        <g id="f5latB" fill="#0D2531" stroke="#2C5D74" stroke-width="1"></g>
+        <g id="f6latB" fill="#0D2531" stroke="#2C5D74" stroke-width="1"></g>
         <g fill="#F2A03D" stroke="#EAF2F0" stroke-width="1.2">
           <circle cx="72" cy="36" r="6"/><circle cx="108" cy="36" r="6"/>
           <circle cx="72" cy="72" r="6"/><circle cx="108" cy="72" r="6"/>
@@ -1054,7 +1135,7 @@ text{font-family:"IBM Plex Mono",monospace;fill:var(--haze)}
       <text class="t-big" x="30" y="288">Re-encode as three on-grid arrays</text>
       <text class="t-small" x="30" y="306">A slice through x and z. Every cell is a grid point; shaded cells receive a source contribution.</text>
 
-      <g id="f5arrays"></g>
+      <g id="f6arrays"></g>
 
       <line x1="0" y1="524" x2="900" y2="524" stroke="#1E4457" stroke-width="1"/>
 
@@ -1222,7 +1303,7 @@ text{font-family:"IBM Plex Mono",monospace;fill:var(--haze)}
     </div>
   </div>
 
-  <p class="cap">The physics is untouched — <span class="mono">pde</span> and <span class="mono">pde_2</span> are the same equation. Everything added on the right exists to move one thing: the source's contribution, out of its own loop and into the grid's. Two mechanisms do the work. <span class="mono">implicit_dims</span> forces an expression into a loop nest it does not syntactically belong to; <span class="mono">symbolic_max</span> lets a loop bound be a value read from an array at runtime. Together they let a sparse, data-dependent operation be written as a dense one.</p>
+  <p class="cap">The physics is untouched — <span class="mono">pde</span> and <span class="mono">pde_2</span> are the same equation. Everything added on the right exists to move one thing: the source's contribution, out of its own loop and into the grid's. Two mechanisms do the work. <span class="mono">implicit_dims</span> forces an expression into a loop nest it does not syntactically belong to; <span class="mono">symbolic_max</span> lets a loop bound be a value read from an array at runtime. Together they let a sparse, data-dependent operation be written as a dense one. In the published release the operator is then built as <span class="mono">op2 = Operator([eqxb, eqyb, eqxb2, eqyb2, stencil_2, eq0, eq1, eq2], opt=('advanced'))</span>, where each <span class="mono">eqx…</span> copies a runtime scalar out of a <span class="mono">block_sizes</span> Function — the tile and block shapes become runtime arguments, so Fig. 09's tuning sweeps need no C edits and no recompiles. That line is the entire compiler-facing surface of the technique.</p>
 </section>
 
 <!-- ============ FIGURE 8 ============ -->
@@ -1307,12 +1388,15 @@ text{font-family:"IBM Plex Mono",monospace;fill:var(--haze)}
     </svg>
 
     <div class="callout">
-      <div class="callout-k mono">What is automated, and what is not</div>
-      <p>Only the first half of this is automatic. The precomputation, the mask and identifier arrays, and the fused loop nest are all generated by Devito from the code in Fig. 07. The wavefront tiling on top — the outer tile loops and the <span class="mono">x - time</span> skew — was applied by <em>manually transforming the generated C</em>. Full automation inside the DSL is listed as future work, and the paper is explicit about it.</p>
+      <div class="callout-k mono">What the compiler generates, and what was done by hand</div>
+      <p>The released code (tag <span class="mono">v0.9-alpha</span>) shows where the line is. Everything inside the two fused inner loops is produced by the Devito compiler, from the equations of Fig. 07 alone:</p>
+      <p><span class="mono" style="color:#8FE1E8">generated</span> — symbolic lowering (<span class="mono">solve</span>), iteration-space derivation and fusion of the injection into the stencil nest (<span class="mono">implicit_dims</span> + <span class="mono">Inc</span> + <span class="mono">symbolic_max</span>), spatial blocking with runtime block sizes (a <span class="mono">block_sizes</span> Function feeds the <span class="mono">xb_size…</span> scalars), SIMD vectorisation on the unblocked <span class="mono">z</span>, OpenMP with <span class="mono">collapse(2)</span>, and autotuning — <span class="mono">configuration['autotuning'] = 'aggressive'</span> for the baseline, and a hand-rolled sweep in <span class="mono">acoustic_tune_model.py</span> that reassigns <span class="mono">block_sizes.data</span> between runs, one compiled kernel serving the entire sweep.</p>
+      <p><span class="mono" style="color:#F2B9B4">hand-applied</span> — the wavefront skew itself: the outer tile loops and the <span class="mono">x - time</span> shift, read from <span class="mono">print(op2.ccode)</span> and edited into the generated C. Full automation of the skew inside the DSL is listed as future work, and the paper is explicit about it.</p>
+      <p>What has landed since: Devito now exposes <span class="mono">time_m</span>/<span class="mono">time_M</span> sub-timestep execution and <span class="mono">save=Buffer(M)</span> (in the <span class="mono">v2.0-ipdps-accepted</span> fork, with a walk-through in <span class="mono">examples/seismic/tutorials/12_time_blocking.ipynb</span>), which automates the <em>blocking</em> half — not yet the skewed wavefront schedule itself.</p>
     </div>
   </div>
 
-  <p class="cap">Two loops share the innermost <span class="mono">x, y</span> position: the dense stencil sweep over <span class="mono">z</span>, and a short injection loop whose length is read from <span class="mono">nnz_mask</span>. That adjacency turns the source's data dependence into a local, affine one that the outer tiling can reason about. It also explains why the sparsity reduction in Fig. 06 matters so much: without <span class="mono">nnz_mask</span>, the second loop would run the full <span class="mono">nz</span> and multiply by zero almost every time.</p>
+  <p class="cap">Two loops share the innermost <span class="mono">x, y</span> position: the dense stencil sweep over <span class="mono">z</span>, and a short injection loop whose length is read from <span class="mono">nnz_mask</span>. That adjacency turns the source's data dependence into a local, affine one that the outer tiling can reason about. It also explains why the sparsity reduction in Fig. 06 matters so much: without <span class="mono">nnz_mask</span>, the second loop would run the full <span class="mono">nz</span> and multiply by zero almost every time. The block sizes in the drawing are not constants: in the released code they arrive as scalars read from a <span class="mono">block_sizes</span> Function, so the autotuner re-shapes the nest at runtime on a single compiled binary.</p>
 </section>
 
 <!-- ============ FIGURE 9 ============ -->
@@ -1341,7 +1425,7 @@ text{font-family:"IBM Plex Mono",monospace;fill:var(--haze)}
           </tr>
           <tr>
             <td>isotropic elastic</td><td>coupled vectorial + tensorial</td><td>1</td><td>9</td><td>436</td>
-            <td>Nine state parameters instead of one or two, so data movement dominates. First order in time, which shortens the temporal dependence — a deliberately different pattern along <span class="mono">t</span>, and evidence the scheme is not tuned to one shape.</td>
+            <td>Nine state parameters instead of one or two, so data movement dominates. First order in time, which shortens the temporal dependence — a different pattern along <span class="mono">t</span> on purpose, and evidence the scheme is not tuned to one shape.</td>
           </tr>
         </tbody>
       </table>
@@ -1543,9 +1627,10 @@ text{font-family:"IBM Plex Mono",monospace;fill:var(--haze)}
         <dl class="facts">
           <dt>machines</dt><dd>Azure E16s_v3 — 8-core Broadwell E5-2673 v4, AVX2, 50 MB L3. E32s_v3 — 16-core Skylake 8171M, AVX-512, 35.75 MB L3.</dd>
           <dt>toolchain</dt><dd>Devito v4.2.3, GCC 7.5.0 and ICC 2021.1, OpenMP with dynamic scheduling, thread pinning on.</dd>
+          <dt>tuning</dt><dd>Tile and block shapes swept through a <span class="mono">block_sizes</span> Function with Devito's <span class="mono">advanced</span> mode (<span class="mono">acoustic_tune_model.py</span>, tag <span class="mono">v0.9-alpha</span>): the shapes are runtime arguments, so one compiled kernel serves the whole sweep. The spatially blocked baselines additionally use <span class="mono">configuration['autotuning'] = 'aggressive'</span>.</dd>
           <dt>models</dt><dd>512³ points, single precision, 512 ms simulated. 228 timesteps acoustic, 436 elastic, 587 TTI. Grid spacing 10 m, 20 m for TTI. Zero initial conditions, damping absorbing layers.</dd>
           <dt>more sources</dt><dd>Adding sparsely located sources barely moves the gain. Only when sources are packed densely through the whole volume does the scheme lose its structural sparsity — and even then it holds about 1.4× against 1.55×.</dd>
-          <dt>code</dt><dd>Devito fork <a href="https://github.com/georgebisbas/devito" target="_blank" rel="noopener"><span class="mono">georgebisbas/devito</span></a> v0.9-alpha, MIT licensed, with reproduction instructions.</dd>
+          <dt>code</dt><dd>Devito fork, MIT licensed. Release <a href="https://github.com/georgebisbas/devito/releases/tag/v0.9-alpha" target="_blank" rel="noopener"><span class="mono">v0.9-alpha</span></a> (Feb 2021) holds the kernels that ran the paper's experiments — <span class="mono">demo_temporal_sources.py</span>, <span class="mono">demo_tb_acoustic.py</span> and the TTI/elastic <span class="mono">wavesolver.py</span> variants. Branch <a href="https://github.com/georgebisbas/devito/tree/v2.0-ipdps-accepted" target="_blank" rel="noopener"><span class="mono">v2.0-ipdps-accepted</span></a> carries the later <span class="mono">time_m</span>/<span class="mono">time_M</span> work, demonstrated in <span class="mono">examples/seismic/tutorials/12_time_blocking.ipynb</span>.</dd>
         </dl>
       </div>
     </div>
@@ -1615,11 +1700,11 @@ text{font-family:"IBM Plex Mono",monospace;fill:var(--haze)}
 
     <div class="callout" style="border-color:rgba(76,201,212,.3);background:rgba(76,201,212,.04)">
       <div class="callout-k mono" style="color:#8FE1E8">Assumptions</div>
-      <p style="color:#C4D7DE">Working set counted as <span class="mono">W² · nz · 4 bytes · planes</span> with <span class="mono">nz = 512</span>, single precision, and planes = fields × time buffers: 3 for acoustic (one field, second order in time), 6 for TTI (two coupled fields), 18 for elastic (nine state parameters, first order in time). It also ignores the lean itself: a tile skewed by r over T timesteps spans <span class="mono">(W + r·T)²</span> columns rather than <span class="mono">W²</span>, so the true footprint is larger still at high order. It ignores the coefficient and parameter fields — <span class="mono">m</span>, <span class="mono">damp</span>, <span class="mono">θ</span>, <span class="mono">φ</span>, the Lamé fields — and ignores halo overlap between neighbouring tiles, so it is a floor, not an estimate. Efficiency η counts columns touched against columns updated and says nothing about pipeline fill and drain at the domain edges. This is our model for reading Table I, not a measurement from the paper. One disagreement worth chasing: it calls elastic’s order-8 window shut, while Table I still lists a 32×​32 tile there with a measured gain — we are almost certainly over-counting elastic by assuming all nine state parameters stay resident at once.</p>
+      <p style="color:#C4D7DE">Working set counted as <span class="mono">W² · nz · 4 bytes · planes</span> with <span class="mono">nz = 512</span>, single precision, and planes = fields × time buffers: 3 for acoustic (one field, second order in time), 6 for TTI (two coupled fields), 18 for elastic (nine state parameters, first order in time). It also ignores the lean itself: a tile skewed by r over T timesteps spans <span class="mono">(W + r·T)²</span> columns rather than <span class="mono">W²</span>, so the true footprint is larger still at high order. It ignores the coefficient and parameter fields — <span class="mono">m</span>, <span class="mono">damp</span>, <span class="mono">θ</span>, <span class="mono">φ</span>, the Lamé fields — and ignores halo overlap between neighbouring tiles, so it is a floor, not an estimate. Efficiency η counts columns touched against columns updated and says nothing about pipeline fill and drain at the domain edges. This is our model for reading Table I, not a measurement from the paper. One disagreement to chase down: it calls elastic’s order-8 window shut, while Table I still lists a 32×​32 tile there with a measured gain — we are almost certainly over-counting elastic by assuming all nine state parameters stay resident at once.</p>
     </div>
   </div>
 
-  <p class="cap">The cyan curve is skew efficiency: it climbs with tile width because the <span class="mono">r·T</span> columns of lean amortise over a wider tile. The violet curve is the working set: it grows as <span class="mono">W²</span> and crosses the L3 ceiling fast, because the <span class="mono">z</span> dimension is deliberately left unblocked for vectorisation. Between them sits a window of workable tile widths. </p>
+  <p class="cap">The cyan curve is skew efficiency: it climbs with tile width because the <span class="mono">r·T</span> columns of lean amortise over a wider tile. The violet curve is the working set: it grows as <span class="mono">W²</span> and crosses the L3 ceiling fast, because the <span class="mono">z</span> dimension is left unblocked on purpose, for vectorisation. Between them sits a window of workable tile widths. </p>
   <p class="cap">At space order 4 the window is comfortable. At order 12 the radius triples, efficiency needs a tile far wider than cache will hold, and the window shuts — which is our reading of why Table I's order-12 rows jump to 256×256: the autotuner has effectively backed away from temporal blocking rather than found a better tile. Note also that elastic, with nine state parameters, hits the ceiling at a much narrower tile than acoustic does, which is consistent with its tiles staying at 32×32 while acoustic moves to 64×64.</p>
 </section>
 
@@ -1629,7 +1714,7 @@ text{font-family:"IBM Plex Mono",monospace;fill:var(--haze)}
     <div class="fignum">NOTES</div>
     <h2>Open threads</h2>
   </div>
-  <p class="deck">What this artifact deliberately does not claim, and where the work goes next.</p>
+  <p class="deck">What this page does not claim, and where the work goes next.</p>
 
   <div class="twocol" style="margin-top:26px">
     <div>
@@ -1640,11 +1725,11 @@ text{font-family:"IBM Plex Mono",monospace;fill:var(--haze)}
         <dt>one source in the main results</dt>
         <dd>The headline speedups use a single source. The corner-case study extends to many, and holds at roughly 1.4× even when sources are dense — but the main numbers should not be read as a multi-shot result.</dd>
         <dt>both sides autotuned</dt>
-        <dd>The comparison sweeps the tile and block parameter space for the temporally blocked code and compares against Devito's own aggressively tuned spatially blocked kernels. This is the fair framing and is worth stating loudly, because it is the first thing a reviewer will ask.</dd>
+        <dd>The comparison sweeps the tile and block parameter space for the temporally blocked code and compares against Devito's own aggressively tuned spatially blocked kernels. That is the fair comparison, and it should be said up front: it is the first thing a reviewer will ask.</dd>
         <dt>the metric is GPoints/s</dt>
         <dd>Time to solution, not GFLOP/s. A temporally blocked kernel can post a lower flop rate and still finish sooner; the roofline is a diagnostic, not a scoreboard.</dd>
         <dt>order 12 is a negative result</dt>
-        <dd>Reported as such. Fig. 10 argues it is structural rather than an artefact of tuning — worth checking that argument before we lean on it.</dd>
+        <dd>Reported as such. Fig. 10 argues it is structural rather than an artefact of tuning — we should check that argument before leaning on it.</dd>
       </dl>
     </div>
 
@@ -1658,11 +1743,11 @@ text{font-family:"IBM Plex Mono",monospace;fill:var(--haze)}
         <dt>high space order</dt>
         <dd>Stencil retiming and data-layout transformation are the two candidates named in the paper. Fig. 10 suggests where to aim: the binding constraint is the working set, so anything that shrinks resident planes buys back window.</dd>
         <dt>full DSL integration</dt>
-        <dd>The end state is a user writing the same five lines as the baseline and getting time-tiled code out.</dd>
+        <dd>The end state is a user writing the same five lines as the baseline and getting time-tiled code out. Since the paper, Devito gained <span class="mono">time_m</span>/<span class="mono">time_M</span> sub-timestep execution and <span class="mono">save=Buffer(M)</span> — present in the <span class="mono">v2.0-ipdps-accepted</span> fork and demonstrated in <span class="mono">examples/seismic/tutorials/12_time_blocking.ipynb</span> — so time blocks are now expressible as data, but the skewed wavefront schedule itself is still not generated.</dd>
         <dt>moving sources</dt>
         <dd>The precomputation assumes fixed source coordinates across the time domain. Devito's API supports moving sources and the algorithm does not depend on the assumption, but the footprint would need recomputing.</dd>
         <dt>receivers</dt>
-        <dd>Interpolation is the adjoint of injection — a gather rather than a scatter — and the same alignment applies. In FWI and RTM both appear in the same operator, so it is worth showing the receiver path explicitly in a future draft.</dd>
+        <dd>Interpolation is the adjoint of injection — a gather rather than a scatter — and the same alignment applies. In FWI and RTM both appear in the same operator, so a future draft should show the receiver path explicitly.</dd>
       </dl>
     </div>
   </div>
@@ -1670,9 +1755,10 @@ text{font-family:"IBM Plex Mono",monospace;fill:var(--haze)}
 
 <footer class="foot">
   <h3>Sources</h3>
-  <p style="max-width:76ch;margin:0 0 22px">Figures 06 and 07 follow the Devito snippets in the conference slides and Listings 1–6 of the paper. An implementation is published as a Devito fork, <a href="https://github.com/georgebisbas/devito" target="_blank" rel="noopener"><span class="mono">georgebisbas/devito</span></a> v0.9-alpha, MIT licensed, with reproduction instructions in its README. The precomputation and loop fusion are generated by Devito; the wavefront tiling was applied by manually transforming the generated C, and full automation in the DSL is stated as future work.</p>
+  <p style="max-width:76ch;margin:0 0 22px">Figures 06 and 07 follow the Devito snippets in the conference slides and Listings 1–6 of the paper. An implementation is published as a Devito fork, MIT licensed: release <a href="https://github.com/georgebisbas/devito/releases/tag/v0.9-alpha" target="_blank" rel="noopener"><span class="mono">v0.9-alpha</span></a> contains the kernels that ran the paper's experiments, and Fig. 07's transformed code matches it almost line for line. The precomputation and loop fusion are generated by Devito; the wavefront tiling was applied by manually transforming the generated C. Full automation of the skewing is still future work — but branch <a href="https://github.com/georgebisbas/devito/tree/v2.0-ipdps-accepted" target="_blank" rel="noopener"><span class="mono">v2.0-ipdps-accepted</span></a> carries what landed later: <span class="mono">time_m</span>/<span class="mono">time_M</span> sub-timestep execution and <span class="mono">save=Buffer(M)</span> buffering, demonstrated in <span class="mono">examples/seismic/tutorials/12_time_blocking.ipynb</span>.</p>
   <ul class="refs">
     <li>Bisbas, G., Luporini, F., Louboutin, M., Nelson, R., Gorman, G., Kelly, P.&nbsp;H.&nbsp;J. (2021). Temporal blocking of finite-difference stencil operators with sparse “off-the-grid” sources. <em>35th IEEE International Parallel &amp; Distributed Processing Symposium (IPDPS)</em>, 497–506. <a href="https://arxiv.org/abs/2010.10248" target="_blank" rel="noopener">arXiv:2010.10248</a> · <a href="https://ieeexplore.ieee.org/abstract/document/9460483" target="_blank" rel="noopener">IEEE Xplore</a></li>
+    <li>Implementation — Devito fork, MIT licensed. Release <span class="mono">v0.9-alpha</span> (Feb 2021) contains the kernels used to run the paper's experiments — <span class="mono">examples/seismic/acoustic/demo_temporal_sources.py</span>, <span class="mono">demo_tb_acoustic.py</span>, the autotuning scripts and the TTI/elastic <span class="mono">wavesolver.py</span> variants. <a href="https://github.com/georgebisbas/devito/releases/tag/v0.9-alpha" target="_blank" rel="noopener">github.com/georgebisbas/devito · v0.9-alpha</a>. Branch <a href="https://github.com/georgebisbas/devito/tree/v2.0-ipdps-accepted" target="_blank" rel="noopener">v2.0-ipdps-accepted</a> carries the later <span class="mono">time_m</span>/<span class="mono">time_M</span> execution, demonstrated in <span class="mono">examples/seismic/tutorials/12_time_blocking.ipynb</span>.</li>
     <li>Conference presentation slides, IPDPS ’21. <a href="https://www.devitoproject.org/presentations/ipdps21_bisbas_temporal.pdf" target="_blank" rel="noopener">devitoproject.org</a> — source for the methodology steps, array shapes and reported speedups shown in Figures 06, 07 and 09.</li>
     <li>Bisbas, G., Luporini, F., Louboutin, M., Gorman, G., Kelly, P.&nbsp;H.&nbsp;J. (2019). Accelerating real-world stencil computations using temporal blocking: handling sparse sources and receivers. Poster, SC19.</li>
     <li>Luporini, F., Louboutin, M., Lange, M., et&nbsp;al. (2020). Architecture and performance of Devito, a system for automated stencil computation. <em>ACM TOMS</em> 46(1), 1–28. <a href="https://doi.org/10.1145/3374916" target="_blank" rel="noopener">doi:10.1145/3374916</a></li>
@@ -1985,9 +2071,9 @@ text{font-family:"IBM Plex Mono",monospace;fill:var(--haze)}
   g.innerHTML = s;
 })();
 
-/* ---------- Figure 05: lattices and the three arrays ---------- */
+/* ---------- Figure 06: lattices and the three arrays ---------- */
 (function(){
-  ['f5latA','f5latB'].forEach(id => {
+  ['f6latA','f6latB'].forEach(id => {
     const g = document.getElementById(id);
     if(!g) return;
     let s = '';
@@ -1995,7 +2081,7 @@ text{font-family:"IBM Plex Mono",monospace;fill:var(--haze)}
     g.innerHTML = s;
   });
 
-  const g = document.getElementById('f5arrays');
+  const g = document.getElementById('f6arrays');
   if(!g) return;
 
   // a 6 x 4 (x by z) slice; 1 marks a point that receives a contribution
@@ -2067,7 +2153,7 @@ text{font-family:"IBM Plex Mono",monospace;fill:var(--haze)}
     b1: ['TimeFunction — the wavefield',
          'Allocates u with a halo of so/2 points on every side and a rolling time buffer. time_order=2 means three timesteps are addressable (u.backward, u, u.forward) and modulo-indexed into two or three slots, not nt of them. space_order fixes the stencil radius r = so/2 — the same r that sets the minimum skew in Fig. 03.'],
     b2: ['inject — the line that blocks everything',
-         'src is a SparseTimeFunction: coordinates of shape (n_src, 3) and wavelet data of shape (nt, n_src). .inject() expands symbolically into a scatter that writes each source into its surrounding grid points with interpolation weights, addressed through coordinates only known at runtime. Those accesses are non-affine, which is precisely why polyhedral tilers — <a href=\"https://github.com/bondhugula/pluto\" target=\"_blank\" rel=\"noopener\">PLUTO</a>, <a href=\"https://github.com/llvm/llvm-project/tree/main/polly\" target=\"_blank\" rel=\"noopener\">Polly</a>, <a href=\"https://github.com/inducer/loopy\" target=\"_blank\" rel=\"noopener\">Loo.py</a>, <a href=\"https://github.com/periscop/cloog\" target=\"_blank\" rel=\"noopener\">CLooG</a> — cannot touch this loop even though they handle the stencil beside it perfectly well.'],
+         'src is a SparseTimeFunction: coordinates of shape (n_src, 3) and wavelet data of shape (nt, n_src). .inject() expands symbolically into a scatter that writes each source into its surrounding grid points with interpolation weights, addressed through coordinates only known at runtime. Those accesses are non-affine, which is why polyhedral tilers — <a href=\"https://github.com/bondhugula/pluto\" target=\"_blank\" rel=\"noopener\">PLUTO</a>, <a href=\"https://github.com/llvm/llvm-project/tree/main/polly\" target=\"_blank\" rel=\"noopener\">Polly</a>, <a href=\"https://github.com/inducer/loopy\" target=\"_blank\" rel=\"noopener\">Loo.py</a>, <a href=\"https://github.com/periscop/cloog\" target=\"_blank\" rel=\"noopener\">CLooG</a> — cannot touch this loop even though they handle the stencil beside it perfectly well.'],
     b3: ['The PDE, as a residual',
          'm·∂²u/∂t² − ∇²u + damp·∂u/∂t, written symbolically. m is squared slowness, 1/c². The damp field implements the absorbing boundary layer. Nothing here is discretised by hand: u.dt2 and u.laplace expand to finite-difference expressions at the requested orders.'],
     b4: ['solve — rearrange for the unknown',
@@ -2076,9 +2162,9 @@ text{font-family:"IBM Plex Mono",monospace;fill:var(--haze)}
          'Devito lowers each equation into an iteration space derived from the dimensions it touches. stencil carries (time, x, y, z); src_term carries (time, p_src) plus indirection. They do not match, so the compiler emits two loop nests inside the time loop. The result is correct and fast — and untileable in time, because the second nest cannot be reasoned about by the machinery that would skew the first.'],
 
     t1: ['Inject into a field that holds nothing else',
-         'f is a scratch wavefield with identical shape and space order. Running an Operator that contains only the injection, for one timestep — or a few, if the wavelet happens to start at zero — leaves behind exactly the imprint of the sources and nothing else. No PDE runs. This is measurement, not modelling: whatever interpolation scheme .inject() implements, linear or otherwise, the footprint it produces is observed rather than predicted, which is why the scheme is indifferent to the injection type.'],
+         'f is a scratch wavefield with identical shape and space order. Running an Operator that contains only the injection, for one timestep — or a few, if the wavelet happens to start at zero — leaves behind exactly the imprint of the sources and nothing else. No PDE runs. This is measurement, not modelling: whatever interpolation scheme .inject() implements, linear or otherwise, the footprint it produces is observed rather than predicted, which is why the scheme is indifferent to the injection type. The published demo (examples/seismic/acoustic/demo_temporal_sources.py, tag v0.9-alpha) simply runs the whole time range — harmless, since the footprint is fixed once the wavelet is non-zero.'],
     t2: ['np.nonzero — the discovery',
-         'Returns a tuple of index arrays naming every grid point any source can reach. This is the whole precomputation, executed once on the host before time-stepping begins, and it is the reason the paper can call the overhead negligible. Note that a point reached by two nearby sources appears once, not twice — the ID assignment in the next step deduplicates by construction.'],
+         'Returns a tuple of index arrays naming every grid point any source can reach. This is the whole precomputation, executed once on the host before time-stepping begins, and it is the reason the paper can call the overhead negligible. A point reached by two nearby sources appears once, not twice — the ID assignment in the next step deduplicates by construction.'],
     t3: ['Four arrays carry the footprint forward',
          'source_mask: binary, grid-shaped, 1 where a contribution lands. source_id: same shape, a unique ascending integer per affected point. save_src: shape (nt, n_aff_pts) — the sources\u2019 wavelets decomposed onto those points with the interpolation weights already folded in, so no weighting survives into the hot loop. nnz_sp_source_mask: how many affected points each (x, y) column holds, plus a compacted list of their z indices with empty slices cut away.'],
     t4: ['symbolic_max — a loop bound read from memory',
@@ -2090,7 +2176,7 @@ text{font-family:"IBM Plex Mono",monospace;fill:var(--haze)}
     t7: ['Inc, not Eq — and implicit_dims',
          'Inc marks this as an accumulation into u.forward, so Devito treats it as a reduction and preserves the ordering rather than folding it into the assignment beside it. implicit_dims=(time, x, y, sp_zi) is the load-bearing part: it forces the expression into a loop nest whose dimensions the expression does not syntactically mention. Without it, Devito would build a separate iteration space and put us back where Fig. 04 started.'],
     t8: ['Unchanged physics',
-         'Identical to the baseline PDE, on usol instead of u. Nothing about the discretisation, the accuracy or the operation count changes — this is worth stating plainly, because the speedup in Fig. 09 comes entirely from the order in which the same arithmetic is performed.']
+         'Identical to the baseline PDE, on usol instead of u. The discretisation, the accuracy and the operation count are untouched. The speedup in Fig. 09 comes entirely from the order in which the same arithmetic is performed.']
   };
 
   const lines = [...document.querySelectorAll('.code li.note')];
@@ -2279,7 +2365,7 @@ text{font-family:"IBM Plex Mono",monospace;fill:var(--haze)}
   const NAME   = { ac: 'isotropic acoustic', tti: 'anisotropic acoustic (TTI)', el: 'isotropic elastic' };
   const L3     = { bw: 50e6, sl: 35.75e6 };
   const MACH   = { bw: 'Broadwell', sl: 'Skylake' };
-  const ETA_MIN = 0.80;                      // what we call "worth tiling for"
+  const ETA_MIN = 0.80;                      // minimum efficiency we call "worth tiling for"
 
   const X0 = 96, X1 = 800, YB = 352, YT = 88;
   const xOf = i => X0 + i * (X1 - X0) / (Wc.length - 1);
