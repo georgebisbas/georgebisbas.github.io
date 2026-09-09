@@ -591,13 +591,13 @@ text{font-family:"IBM Plex Mono",monospace;fill:var(--haze)}
         </ol></div>
       </div>
       <div>
-        <div class="codehead"><span class="tag ok">temporal blocking</span> time moved inside</div>
+        <div class="codehead"><span class="tag bad">temporal blocking</span> time moved inside · naive</div>
         <div class="code"><ol>
           <li><span class="fn">for</span> tt <span class="fn">in</span> time_tiles:</li>
           <li>  <span class="fn">for</span> blk <span class="fn">in</span> blocks:</li>
           <li>    <span class="fn">for</span> t <span class="fn">in</span> tt:</li>
           <li>      <span class="fn">for</span> x <span class="fn">in</span> blk:  update(t, x)</li>
-          <li class="c"># blk is loaded once for all t in tt</li>
+          <li class="c"># blk loaded once for all t in tt · its right edge reads the next blk, not yet advanced</li>
         </ol></div>
       </div>
     </div>
@@ -609,7 +609,7 @@ text{font-family:"IBM Plex Mono",monospace;fill:var(--haze)}
     </svg>
   </div>
 
-  <p class="cap">That interchange is not legal as written: a block's edge needs neighbours from the block beside it, which has not reached the timestep yet. Each family above restores legality differently — by leaning, by recomputing, or by choosing a tile shape that never asks. This paper uses skewed wavefront tiling, which Fig. 03 covers. The problem this paper addresses is orthogonal to that choice: none of these families can be applied at all once the simulation contains sources that are not on the grid.</p>
+  <p class="cap">Sliding time inside the block loop — the naive interchange shown on the right — is not legal: a block's right-hand edge reads points in the next block, which runs after it and has not reached that timestep yet. The families above are the repairs, each restoring legality a different way — by leaning the tiles, by recomputing the shared margin, or by cutting a shape that never reaches into its neighbour. This paper uses skewed wavefront tiling, which Fig. 03 covers. The problem it addresses is orthogonal to the repair you choose: none of these families can be applied at all once the simulation contains sources that are not on the grid.</p>
 </section>
 
 <div class="keystrip">
