@@ -423,7 +423,7 @@ details.prov[open]>summary{margin-bottom:12px}
 <header class="mast">
   <div class="eyebrow">IPDPS 2021 · arXiv:2010.10248</div>
   <h1>Temporal blocking of finite-difference stencil operators with sparse <span class="hi">“off-the-grid”</span> sources</h1>
-  <p class="standfirst">Finite-difference wave solvers are only fast when cached data is reused across timesteps. Real wave-propagation codes break the technique, because seismic sources and receivers sit between grid points. A short primer on time-tiling, then ten figures on why it breaks, how the paper puts it back together, and what the code actually says.</p>
+  <p class="standfirst">This page is a companion to the paper (<a href="https://arxiv.org/abs/2010.10248" target="_blank" rel="noopener">arXiv:2010.10248</a>) — read that for the full derivations, proofs and benchmark methodology; this is a figure-by-figure walkthrough built for intuition. Moving data to and from memory costs time on every finite-difference wave solver, compute-bound or not, and temporal blocking cuts that cost by reusing cached data across timesteps. Real wave-propagation codes break the technique, because seismic sources and receivers sit between grid points. A short primer on time-tiling, then ten figures on why it breaks, how the paper puts it back together, and what the code actually says.</p>
   <div class="authors">
     <p class="authorline"><span class="an">George Bisbas</span><sup>1</sup> <span class="sep">·</span> <span class="an">Fabio Luporini</span><sup>2</sup> <span class="sep">·</span> <span class="an">Mathias Louboutin</span><sup>3</sup> <span class="sep">·</span> <span class="an">Rhodri Nelson</span><sup>1</sup> <span class="sep">·</span> <span class="an">Gerard J. Gorman</span><sup>1</sup> <span class="sep">·</span> <span class="an">Paul H. J. Kelly</span><sup>1</sup></p>
     <p class="affils mono">
@@ -439,6 +439,7 @@ details.prov[open]>summary{margin-bottom:12px}
 </header>
 
 <section class="provenance">
+  <p class="deck" style="max-width:none;margin:0 0 20px">I wrote the paper five years ago. This page exists because I finally sat down and built the figures I wish I'd had back then — the tiling geometry, the sparse-source break, the code walkthrough — with Claude doing most of the drawing, instead of leaving it all as equations and prose.</p>
   <details class="prov">
   <summary class="prov-k mono">How this was made</summary>
   <div class="prov-body">
@@ -899,7 +900,7 @@ details.prov[open]>summary{margin-bottom:12px}
     </div>
   </div>
   <p class="cap">Every dot is a grid point at one timestep; every parallelogram is one space–time tile, numbered in execution order. Press play and the sweep runs the way the generated code does: tile ① is carried through all four timesteps before tile ② begins, so its data stays in cache for the whole time block. The white marker is the point being updated, and the arrows are the <span class="mono">2r+1</span> values it reads from the row below. At skew 0, watch the right-hand arrows go red every time the sweep reaches a tile's trailing edge: it is asking for values from a tile that has not run. Raise the skew to <span class="mono">r</span> and the counter stays at zero for the whole run. </p>
-  <p class="cap">Raise it beyond <span class="mono">r</span> and the run is still clean, but the tile now sweeps across more columns than it updates for no extra reuse. The minimum legal skew <em>is</em> <span class="mono">r</span>, so a wider stencil forces a steeper lean whether or not you want one. The same geometry explains the paper's numbers: 1.6× at space order 4, about 1.13× at order 8, gone by order 12.</p>
+  <p class="cap">Raise it beyond <span class="mono">r</span> and the run is still clean, but the tile now sweeps across more columns than it updates for no extra reuse. The minimum legal skew <em>is</em> <span class="mono">r</span>, so a wider stencil forces a steeper lean whether or not you want one. The same geometry explains the paper's numbers: 1.6× at space order 4, about 1.13× at order 8, down to a token 5–10% or none at all by order 12, depending on the kernel (Fig. 09).</p>
 </section>
 
 <!-- ============ FIGURE 4 ============ -->
@@ -1567,7 +1568,7 @@ details.prov[open]>summary{margin-bottom:12px}
       </g>
     </svg>
 
-    <p class="cap" style="margin-top:22px">A wider stencil needs a steeper wavefront angle, so each tile sweeps across more columns than it updates and its working set grows for no extra reuse — while the stencil itself demands more space updates per point advanced in time. Both terms move the wrong way at once, and neither is something tuning can recover. The paper is direct about this: gains of 15–60% at space orders 4 and 8, 5–10% at order 12, and it flags high-order kernels as open work, pointing at stencil retiming and data-layout transformations as possible routes. Fig. 10 puts numbers on the mechanism.</p>
+    <p class="cap" style="margin-top:22px">A wider stencil needs a steeper wavefront angle, so each tile sweeps across more columns than it updates and its working set grows for no extra reuse — while the stencil itself demands more space updates per point advanced in time. Both terms move the wrong way at once, and neither is something tuning can recover. The paper is direct about this: gains of 13–60% at space orders 4 and 8, 5–10% at order 12, and it flags high-order kernels as open work, pointing at stencil retiming and data-layout transformations as possible routes. Fig. 10 puts numbers on the mechanism.</p>
 
     </div>
 
