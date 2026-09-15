@@ -540,6 +540,8 @@ details.prov[open]>summary{margin-bottom:12px}
       <dd>The set of loop indices a nest runs over. Two equations with mismatched spaces become two loop nests — the fact <a href="#f4">Fig. 04</a> turns on.</dd>
       <dt>affine access</dt>
       <dd>An index that is an affine function of the loop counters — a linear combination plus a constant. Coordinates read from memory at runtime make an access <em>non-affine</em>, which is where polyhedral tilers stop.</dd>
+      <dt>polyhedral model</dt>
+      <dd>A compiler technique that represents a loop nest's iterations as integer points in a geometric region, so tiling, skewing and fusion become operations on that shape. It needs every bound and access to be affine to build the region at all — PLUTO, Polly and CLooG work this way.</dd>
       <dt>halo</dt>
       <dd>The read-only margin of r points a block needs beyond the region it updates.</dd>
       <dt>adjoint</dt>
@@ -659,13 +661,13 @@ details.prov[open]>summary{margin-bottom:12px}
     <p class="subnote" style="margin-top:22px">Terminology follows the paper: a <b>block</b> is a spatial-only grouping; a <b>tile</b> is a block allowed to advance through several timesteps at once. Tiles therefore nest over blocks — the distinction the listings above, <a href="#table1">Table I</a> and the loop nest of <a href="#f8">Fig. 08</a> all rely on.</p>
 
     <div class="subhead mono" style="margin-top:34px">Four ways to cut the space–time iteration space</div>
-    <p class="subnote">Time-tiling is a family of methods, not a single one. Each panel below shows the same iteration space: every dot is one grid point at one timestep, and its colour says which tile owns it. The four drawn here are the ones this argument needs; the family also includes cache-oblivious space–time recursion (<a href="#ref-frigo">Frigo &amp; Strumpen</a>), hexagonal hybrid tiles (<a href="#ref-grosser">Grosser et al.</a>) and 3.5D partial-dimension blocking (<a href="#ref-nguyen">Nguyen et al.</a>).</p>
+    <p class="subnote">Time-tiling is a family of methods, not a single one. Each panel below shows the same iteration space: every dot is one grid point at one timestep, and its colour says which tile owns it. The four drawn here are the ones this argument needs; the family also includes cache-oblivious space–time recursion — tiling recursively until a base case fits cache, with no cache size ever named in the code — (<a href="#ref-frigo">Frigo &amp; Strumpen</a>), hexagonal hybrid tiles (<a href="#ref-grosser">Grosser et al.</a>) and 3.5D partial-dimension blocking (<a href="#ref-nguyen">Nguyen et al.</a>).</p>
 
     <svg id="tilefam" viewBox="0 0 900 740" role="img" style="margin-top:18px" aria-label="Four ways of cutting the space-time iteration space, each drawn on the same lattice of iteration points: spatial blocking, skewed parallelogram tiles, overlapped trapezoidal tiles with redundant points, and diamond tiles allowing concurrent start.">
     </svg>
   </div>
 
-  <p class="cap">Sliding time inside the block loop — the naive interchange shown on the right — is not legal: a block's right-hand edge reads points in the next block, which runs after it and has not reached that timestep yet. The families above are the repairs, each restoring legality a different way — by leaning the tiles, by recomputing the shared margin, or by cutting cone-shaped tiles whose boundaries follow the dependence cone, so every tile can start at once. This paper uses skewed wavefront tiling, which <a href="#f3">Fig. 03</a> covers. The problem it addresses is orthogonal to the repair you choose: none of these families can be applied unmodified once the simulation contains sources that are not on the grid: injection is additive, so tiles that overlap or lean across a seam would need ownership masks to avoid double-counting a contribution — the machinery <a href="#f6">Fig. 06</a> builds.</p>
+  <p class="cap">Sliding time inside the block loop — the naive interchange shown on the right — is not legal: a block's right-hand edge reads points in the next block, which runs after it and has not reached that timestep yet. The families above are the repairs, each restoring legality a different way — by leaning the tiles, by recomputing the shared margin, or by cutting cone-shaped tiles whose boundaries follow the dependence cone, so every tile can start at once — <em>concurrent start</em>, in the diamond panel below. This paper uses skewed wavefront tiling, which <a href="#f3">Fig. 03</a> covers. The problem it addresses is orthogonal to the repair you choose: none of these families can be applied unmodified once the simulation contains sources that are not on the grid: injection is additive, so tiles that overlap or lean across a seam would need ownership masks to avoid double-counting a contribution — the machinery <a href="#f6">Fig. 06</a> builds.</p>
 </section>
 
 <div class="keystrip">
@@ -767,7 +769,7 @@ details.prov[open]>summary{margin-bottom:12px}
   </div>
 
   <p class="cap">Two iteration spaces share one field. The stencil walks the lattice in order; these two arrive through indirect accesses at coordinates that were never part of it. The arrows run opposite ways on purpose — injection scatters outward, interpolation gathers inward — because the receiver operator is the adjoint of the source operator, built from the same weights. </p>
-  <p class="cap">That symmetry matters later: in FWI and RTM both appear in the same operator, so anything that fixes one has to fix the other. In time the two are aligned, acting on the same timestep index; in space neither is. They are not symmetric as schedules, though: injection writes, so it pins the order, while interpolation only reads and can be deferred — as far as the time buffer allows.</p>
+  <p class="cap">That symmetry matters later: in full waveform inversion (FWI) and reverse time migration (RTM) — the two seismic-imaging workloads this solver is built for — both appear in the same operator, so anything that fixes one has to fix the other. In time the two are aligned, acting on the same timestep index; in space neither is. They are not symmetric as schedules, though: injection writes, so it pins the order, while interpolation only reads and can be deferred — as far as the time buffer allows.</p>
 </section>
 
 <!-- ============ FIGURE 3 ============ -->
@@ -1239,7 +1241,7 @@ details.prov[open]>summary{margin-bottom:12px}
     </table>
   </div>
   <p class="cap">Band A pays a one-off cost — a single timestep of injection into an empty field — to learn the footprint; the paper reports this as negligible next to the gain, and it holds for non-linear injection too, because it observes the operator rather than modelling it. Band B stores that footprint three ways: a binary mask, an identifier into the pre-weighted source values, and a per-column count of non-zeros so the sweep can skip empty <span class="mono">z</span> slices instead of testing every point. </p>
-  <p class="cap">Band C is the result: one loop nest, no indirect scatter, the interpolation hoisted into the precomputation, and a single iteration space that <a href="#f3">Fig. 03</a>'s skew can now be applied to. Legality rests on three conditions the paper states: coordinates fixed across the time domain, the mask and ID structures read-only once built, and the injection ordered after the stencil at the same timestep — which is what <span class="mono">Inc</span> preserves. Band A is the inspector, the fused nest the executor. <a href="#f7">Fig. 07</a> shows the Devito that produces it, line by line.</p>
+  <p class="cap">Band C is the result: one loop nest, no indirect scatter, the interpolation hoisted into the precomputation, and a single iteration space that <a href="#f3">Fig. 03</a>'s skew can now be applied to. Legality rests on three conditions the paper states: coordinates fixed across the time domain, the mask and ID structures read-only once built, and the injection ordered after the stencil at the same timestep — which is what <span class="mono">Inc</span> preserves. This is the classic <em>inspector/executor</em> split from the sparse-compilation literature: Band A is the inspector, a cheap pass that resolves the data-dependent structure once; the fused nest is the executor, which runs many times against what the inspector found. <a href="#f7">Fig. 07</a> shows the Devito that produces it, line by line.</p>
 </section>
 
 
@@ -1475,7 +1477,7 @@ details.prov[open]>summary{margin-bottom:12px}
         <tbody>
           <tr>
             <td>isotropic acoustic</td><td>single scalar PDE</td><td>2</td><td>1</td><td>228</td>
-            <td>Jacobi-like Laplacian, low arithmetic intensity, firmly bandwidth-bound — the best case for temporal blocking, and it gains the most.</td>
+            <td>Jacobi-like (each point updates from last timestep's values only) Laplacian, low arithmetic intensity (few flops per byte moved), firmly bandwidth-bound — the best case for temporal blocking, and it gains the most.</td>
           </tr>
           <tr>
             <td>anisotropic acoustic (TTI)</td><td>coupled system, 2 scalar PDEs</td><td>2</td><td>2</td><td>587</td>
@@ -1695,7 +1697,7 @@ details.prov[open]>summary{margin-bottom:12px}
     </div>
   </div>
 
-  <p class="cap">Up to 1.6× at space order 4 and around 1.13× or better at order 8, varying by propagator, on kernels that were already flop-optimised and tuned and that previously could not be time-tiled at all. The metric is GPoints/s, time to solution, rather than GFLOP/s: a temporally blocked kernel can post a lower flop rate and still finish sooner, which is why the roofline is read as a diagnostic rather than a scoreboard. Temporal blocking is often reported at larger multiples, but against baselines tuned to a lesser degree and without the sparse-operator constraint that had to be lifted here; tuned against tuned is the conservative reading.</p>
+  <p class="cap">Up to 1.6× at space order 4 and around 1.13× or better at order 8, varying by propagator, on kernels that were already flop-optimised and tuned and that previously could not be time-tiled at all. The metric is GPoints/s, time to solution, rather than GFLOP/s: this technique adds no redundant computation (<a href="#f8">Fig. 08</a>), so GFLOP/s moves with the same speedup shown here — but flop count isn't fixed across every tiling family (overlapped tiling trades redundant flops for concurrency), so points/s stays the metric of record, and the roofline is read as a diagnostic rather than a scoreboard. Temporal blocking is often reported at larger multiples, but against baselines tuned to a lesser degree and without the sparse-operator constraint that had to be lifted here; tuned against tuned is the conservative reading.</p>
 </section>
 
 <!-- ============ FIGURE 10 ============ -->
@@ -1759,7 +1761,7 @@ details.prov[open]>summary{margin-bottom:12px}
 
     <div class="callout" style="border-color:rgba(76,201,212,.3);background:rgba(76,201,212,.04)">
       <div class="callout-k mono" style="color:#8FE1E8">Assumptions</div>
-      <p style="color:#C4D7DE">Working set counted as <span class="mono">W² · nz · 4 bytes · planes</span> with <span class="mono">nz = 512</span>, single precision, and planes = fields × time buffers: 3 for acoustic (one field, second order in time), 6 for TTI (two coupled fields), 18 for elastic (nine state parameters, first order in time). It also ignores the lean itself: a tile skewed by r over T timesteps spans <span class="mono">(W + r·T)²</span> columns rather than <span class="mono">W²</span>, so the true footprint is larger still at high order. It ignores the coefficient and parameter fields — <span class="mono">m</span>, <span class="mono">damp</span>, <span class="mono">θ</span>, <span class="mono">φ</span>, the Lamé fields — and ignores halo overlap between neighbouring tiles, so it is a floor, not an estimate. Efficiency η counts columns touched against columns updated and says nothing about pipeline fill and drain at the domain edges. This is a model for reading <a href="#table1">Table I</a>, not a measurement from the paper. One disagreement remains: it calls elastic’s order-8 window shut, while <a href="#table1">Table I</a> still lists a 32×​32 tile there with a measured gain — assuming all nine state parameters stay resident at once most likely over-counts elastic. Two corrections the literature suggests: the aspect-ratio argument is the classical one for skewed tiles (<a href="#ref-wonnacott">Wonnacott</a>; <a href="#ref-strzodka">Strzodka</a>'s cache-accurate time skewing bounds the same footprint with single-timestep passes), and partially blocking <span class="mono">z</span> — what 3.5D schemes do — would shrink the term at the cost of the contiguity SIMD needs.</p>
+      <p style="color:#C4D7DE">Working set counted as <span class="mono">W² · nz · 4 bytes · planes</span> with <span class="mono">nz = 512</span>, single precision, and planes = fields × time buffers: 3 for acoustic (one field, second order in time), 6 for TTI (two coupled fields), 18 for elastic (nine state parameters, first order in time). It also ignores the lean itself: a tile skewed by r over T timesteps spans <span class="mono">(W + r·T)²</span> columns rather than <span class="mono">W²</span>, so the true footprint is larger still at high order. It ignores the coefficient and parameter fields — <span class="mono">m</span>, <span class="mono">damp</span>, <span class="mono">θ</span>, <span class="mono">φ</span>, the Lamé fields — and ignores halo overlap between neighbouring tiles, so it is a floor, not an estimate. Efficiency η counts columns touched against columns updated and says nothing about pipeline fill and drain at the domain edges. This is a model for reading <a href="#table1">Table I</a>, not a measurement from the paper. One disagreement remains: it calls elastic’s order-8 window shut, while <a href="#table1">Table I</a> still lists a 32×​32 tile there with a measured gain — assuming all nine state parameters stay resident at once most likely over-counts elastic. Two corrections the literature suggests: the aspect-ratio argument — that a tile's footprint is minimised by a specific ratio of its space extent to its time extent, not by maximising either alone — is the classical one for skewed tiles (<a href="#ref-wonnacott">Wonnacott</a>; <a href="#ref-strzodka">Strzodka</a>'s cache-accurate time skewing bounds the same footprint with single-timestep passes), and partially blocking <span class="mono">z</span> — what 3.5D schemes do — would shrink the term at the cost of the contiguity SIMD needs.</p>
     </div>
   </div>
 
@@ -1786,7 +1788,7 @@ details.prov[open]>summary{margin-bottom:12px}
         <dt>both sides autotuned</dt>
         <dd>The comparison sweeps the tile and block parameter space for the temporally blocked code and compares against Devito's own aggressively tuned spatially blocked kernels. That is the fair comparison, and it should be said up front: it is the first thing a reviewer will ask.</dd>
         <dt>the metric is GPoints/s</dt>
-        <dd>Time to solution, not GFLOP/s. A temporally blocked kernel can post a lower flop rate and still finish sooner; the roofline is a diagnostic, not a scoreboard.</dd>
+        <dd>Time to solution, not GFLOP/s. This technique adds no redundant computation, so GFLOP/s moves with the speedup here — but that isn't true of every tiling family, so points/s is the safer metric of record; the roofline is a diagnostic, not a scoreboard.</dd>
         <dt>order 12 is a negative result</dt>
         <dd>Reported as such. <a href="#f10">Fig. 10</a> argues it is structural rather than an artefact of tuning — an argument worth checking before leaning on it.</dd>
       </dl>
@@ -1838,6 +1840,9 @@ details.prov[open]>summary{margin-bottom:12px}
     <li id="ref-strzodka">Strzodka, R., Shaheen, M., Pajak, D., Seidel, H.-P. (2011). Cache accurate time skewing in iterative stencil computations. <em>ICPP 2011</em>. <a href="https://doi.org/10.1109/ICPP.2011.47" target="_blank" rel="noopener">doi:10.1109/ICPP.2011.47</a> — bounds the same footprint with single-timestep passes, cited alongside Fig. 10's model.</li>
   </ul>
   <p style="margin-top:28px;max-width:76ch">I had Claude redraw these for explanation, not reproduce them from the publications. Geometry in <a href="#f3">Fig. 03</a>, <a href="#f4">Fig. 04</a>, <a href="#f5">Fig. 05</a> and <a href="#f10">Fig. 10</a> is illustrative: tile counts, block sizes and skew values are chosen for legibility rather than matching any benchmarked configuration.</p>
+
+  <h3 style="margin-top:32px">One more pointer</h3>
+  <p style="max-width:76ch">The "suits GPUs and distributed memory" line under the overlapped-tiling panel in the primer above, and the "MPI-aware scheme" left as open work, are exactly what Nicholas Duer took on for his MEng thesis, which I co-supervised with Paul Kelly at Imperial: <em>Temporal Tiling for Distributed Parallel Solution of Partial Differential Equations</em> (2023). He extends wavefront tiling's temporal locality to distributed-memory PDE solvers via overlapped tiling, derives models for the redundant-computation/communication trade-off it costs, and reports 55% and 28% speedups on Laplace stencils at space order 2 and 4. Excellent work — worth a read if the MPI-aware scheme above is the part you came here for. <a href="https://www.imperial.ac.uk/media/imperial-college/faculty-of-engineering/computing/public/distinguished-projects/2223-ug-projects/Tiling-in-time---improving-data-locality-in-computational-science-applications,-in-4D.pdf" target="_blank" rel="noopener">Read the thesis</a>.</p>
 </footer>
 
 </main>
