@@ -208,7 +208,7 @@
   .rung p { color:var(--ink-2); font-size:.93rem; }
   @media (max-width:640px){ .rung { grid-template-columns:minmax(0,1fr); gap:8px; } }
 
-  /* ---- stage badges (recurring visual thread: DSL -> IR -> Ascend C -> compile -> link -> NPU) ---- */
+  /* ---- stage badges (recurring visual thread: DSL -> IR -> PTO MLIR -> PTOAS C++/PTO-ISA -> compile -> link -> NPU) ---- */
   .stage-badge {
     display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:.7rem;
     letter-spacing:.03em; color:var(--ink-2); border:1px solid var(--rule-strong); border-radius:100px;
@@ -715,15 +715,18 @@
       does (pass 10), and it is why two programs come out.</dd>
   </dl>
   <div class="note col" style="margin-top:22px">
-    <p class="eyebrow">Why placement can&rsquo;t be left to a cache</p>
+    <p class="eyebrow">Why placement must be explicit on this target</p>
     <p style="color:var(--ink-2)">
-      On a GPU a compiler can treat memory placement as an optimization detail: every SM runs the same
-      program (SIMT) against a hardware cache. An Ascend AI Core is <strong>MPMD</strong> (multiple
-      program, multiple data): the cube core (AIC) and the vector cores (AIV) run <em>separate</em>
-      programs, each with its own scalar unit and its own private buffers, and there is no cache between
-      the global memory and the cube&rsquo;s operand ports. Somebody has to decide, for every tile, which
-      buffer it lives in and which DMA engine moves it there. In this program that somebody is the
-      compiler, and the next sections show each decision.
+      For this page&rsquo;s Ascend 910B target (a 220x-class separation-mode device), the relevant execution
+      model is <strong>MPMD-like</strong>: the AIC (Cube) and AIV (Vector) cores have independent scalar
+      control paths and can load separate instruction streams. Data exchanged between them follows the
+      documented global-memory path on this target, while explicit cross-core flags provide ordering.
+      PyPTO therefore cannot rely on a transparent GPU-style cache hierarchy for tensor tiles; placement
+      and movement have to be exposed or inferred. A manual six-statement matmul makes that contract
+      visible: two GM&rarr;Mat loads, two Mat&rarr;Left/Right moves, one cube multiply producing Acc, and
+      one store back to GM. The whole-tensor example on this page is a separate route: the
+      <code>AutoTileMatmulL0</code> pass chooses legal L0 tiles with a cost model, then PyPTO emits PTO
+      MLIR and PTOAS lowers it to C++ calls into PTO-ISA before compilation.
     </p>
   </div>
 </section>
@@ -735,7 +738,7 @@
     <h2>Three tools, two programs, one run</h2>
     <p style="color:var(--ink-2)">
       PyPTO&rsquo;s passes turn the program into two functions. The device kernel goes through PTOAS to
-      C++ for the AI Core. The orchestration function becomes C++ against simpler&rsquo;s API and runs on
+      C++ calls into PTO-ISA for the AI Core. The orchestration function becomes C++ against simpler&rsquo;s API and runs on
       the AI CPU. simpler brings the two back together at run time. Step through once; each later section
       expands one box.
     </p>
@@ -775,7 +778,7 @@
             <path class="pp2-e" id="pp2-e5" d="M430 232 C 440 232, 438 160, 448 160"/>
             <path class="pp2-e" id="pp2-e6" d="M528 150 H546"/>
           </svg>
-          <figcaption>The fork after stage 2 is the MPMD split made concrete: the compiler emits a device program and a host-side program, and the runtime joins them.</figcaption>
+          <figcaption>The fork after stage 2 is the two-program split made concrete: the compiler emits a device program and a host-side program, and the runtime joins them.</figcaption>
         </figure>
       </div>
     </div>
@@ -1783,16 +1786,16 @@ prev=; <span class="k">for</span> f <span class="k">in</span> $(ls | sort); <spa
       para("Press Play or Next. Seven stages, two outputs, one run.") },
     { box:0, on:[], detail: tag("var(--ink-3)", "Stage 1 / 7 · PyPTO DSL") +
       '<pre><code><span class="k">with</span> pl.at(level=pl.Level.CORE_GROUP):\n    c[:] = pl.<span class="fn">matmul</span>(a, b, out_dtype=pl.FP32)</code></pre>' +
-      para("What you write. <code>@pl.jit</code> specializes it on the argument shapes and dtypes the first time it is called; the six lines are parsed into PyPTO's IR as tensor operations.") },
+      para("What you write. <code>@pl.jit</code> specializes the displayed whole-tensor call on the argument shapes and dtypes the first time it is called; PyPTO parses that call into its IR as tensor operations.") },
     { box:1, on:["pp2-e0"], detail: tag("var(--cyan)", "Stage 2 / 7 · PyPTO passes") +
       '<pre><code><span class="cm"># after pass 19 (AutoTileMatmulL0)</span>\n<span class="k">for</span> ko, (c,) <span class="k">in</span> pl.pipeline(\n    0, 512, 128, stage=2, …\n):\n    a0 = pl.tile.extract(\n        a_mat, 0, ko, [128, 128],\n        target_memory=Left)\n    b0 = pl.tile.extract(\n        b_mat, ko, 0, [128, 128],\n        target_memory=Right)\n    c = pl.tile.matmul_acc(c, a0, b0, ko == 0)</code></pre>' +
       para("54 passes over one IR; 16 change this program. They outline the device region, lower tensors to tiles, choose the L0 tile, replicate the loop for ping-pong and allocate every buffer. See <a href=\"#passes\">Sixteen passes out of fifty-four</a>.") },
     { box:2, on:["pp2-e1"], detail: tag("var(--violet)", "Stage 3 / 7 · PTOAS module") +
       '<pre><code>%a0 = pto.alloc_tile addr = 0 :\n  !pto.tile_buf&lt;\n    <span class="hl">loc=left</span>, dtype=f16,\n    rows=128, cols=128,\n    blayout=row_major,\n    slayout=row_major,\n    fractal=512&gt;\npto.textract ins(%a_mat, 0, %ko)\n             outs(%a0)</code></pre>' +
       para("The kernel is printed as MLIR in the PTO dialect. Memory space, address and layout are part of each tile's type. There is no synchronization in it yet.") },
-    { box:3, on:["pp2-e2"], detail: tag("var(--violet)", "Stage 4 / 7 · kernel C++") +
+    { box:3, on:["pp2-e2"], detail: tag("var(--violet)", "Stage 4 / 7 · PTOAS C++ / PTO-ISA") +
       '<pre><code><span class="hl">wait_flag(PIPE_M, PIPE_MTE1, EVENT_ID0);</span>\nTEXTRACT(a0, a_mat, 0, ko);\nTEXTRACT(b0, b_mat, ko, 0);\n<span class="hl">set_flag(PIPE_MTE1, PIPE_M, EVENT_ID0);</span></code></pre>' +
-      para("PTOAS lowers the module to C++ calls into the PTO instruction library and inserts every set_flag / wait_flag. See <a href=\"#ptoas\">PTOAS adds the one thing PyPTO left out</a>.") },
+      para("PTOAS lowers the module to C++ calls into the PTO-ISA instruction library and inserts every set_flag / wait_flag. See <a href=\"#ptoas\">PTOAS adds the one thing PyPTO left out</a>.") },
     { box:4, on:["pp2-e4"], detail: tag("var(--green)", "Stage 5 / 7 · orchestration C++") +
       '<pre><code>SIMPLER_SCOPE() {\n    CoreTaskArgs params_t0;\n    params_t0.add_input(ext_a);\n    params_t0.add_input(ext_b);\n    params_t0.add_output(ext_c);\n    rt_submit_aic_task(0, params_t0);\n}</code></pre>' +
       para("The other half of pass 10's split: host-side logic, emitted as C++ against simpler's orchestration API. One task, three tagged arguments. See <a href=\"#simpler\">What simpler does with the other program</a>.") },
