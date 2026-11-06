@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A short China travel guide — George Bisbas</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230d1117'/%3E%3Ctext x='50' y='70' font-family='monospace' font-size='58' fill='%2339c5cf' text-anchor='middle'%3E%3E_%3C/text%3E%3C/svg%3E">
+    <style>
+        :root {
+            --bg: #0d1117;
+            --text: #e6edf3;
+            --text-muted: #8b949e;
+            --accent: #39c5cf;
+            --accent-soft: rgba(57, 197, 207, 0.12);
+            --amber: #e3b341;
+            --border: #21262d;
+            --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+            --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+        }
+        body {
+            font-family: var(--sans);
+            line-height: 1.65;
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+        }
+        .page {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 48px 20px;
+        }
+        a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        h1 {
+            font-family: var(--mono);
+            letter-spacing: -0.01em;
+            font-size: 1.6em;
+            margin-bottom: 0.2em;
+        }
+        h2 {
+            font-family: var(--mono);
+            font-size: 1.15em;
+            margin-top: 2.2em;
+            padding-top: 1.4em;
+            border-top: 1px solid var(--border);
+        }
+        h2::before {
+            content: "// ";
+            color: var(--text-muted);
+            font-weight: normal;
+        }
+        .subtitle {
+            font-family: var(--mono);
+            color: var(--text-muted);
+            font-size: 0.9em;
+            margin: 0 0 1.5em;
+        }
+        .nav-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 1.5em;
+        }
+        .nav-btn {
+            display: inline-block;
+            font-family: var(--mono);
+            font-size: 0.82em;
+            padding: 5px 10px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background: var(--accent-soft);
+            color: var(--accent);
+        }
+        .nav-btn:hover {
+            background: rgba(57, 197, 207, 0.22);
+            text-decoration: none;
+        }
+        ul {
+            padding-left: 1.2em;
+        }
+        li {
+            margin-bottom: 0.7em;
+        }
+        li::marker {
+            color: var(--accent);
+        }
+        .app-name {
+            font-family: var(--mono);
+            font-weight: 600;
+        }
+        .note {
+            font-size: 0.88em;
+            color: var(--text-muted);
+        }
+        .tips {
+            counter-reset: tip;
+            list-style: none;
+            padding: 0;
+        }
+        .tips li {
+            position: relative;
+            padding-left: 2.2em;
+        }
+        .tips li::before {
+            counter-increment: tip;
+            content: counter(tip);
+            position: absolute;
+            left: 0;
+            top: 0.1em;
+            font-family: var(--mono);
+            font-size: 0.8em;
+            color: var(--accent);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            width: 1.5em;
+            height: 1.5em;
+            line-height: 1.5em;
+            text-align: center;
+        }
+        .referral-list {
+            list-style: none;
+            padding: 0;
+            margin: 1.2em 0 0;
+        }
+        .referral-list li {
+            border-top: 1px solid var(--border);
+            padding: 0.9em 0;
+        }
+        .referral-list li:last-child {
+            border-bottom: 1px solid var(--border);
+        }
+        .referral-name {
+            font-family: var(--mono);
+            font-weight: 600;
+        }
+        .referral-code {
+            font-family: var(--mono);
+            font-size: 0.85em;
+            color: var(--amber);
+        }
+        .referral-desc {
+            display: block;
+            font-size: 0.88em;
+            color: var(--text-muted);
+            margin-top: 0.15em;
+        }
+        footer {
+            margin-top: 3em;
+            padding-top: 1.5em;
+            border-top: 1px solid var(--border);
+            font-size: 0.8em;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <div class="nav-actions">
+            <a class="nav-btn" href="index.html">&larr; Blog</a>
+            <a class="nav-btn" href="../index.html">Homepage</a>
+        </div>
+
+        <h1>A short China travel guide</h1>
+        <p class="subtitle">The apps and setup I'd sort before landing — connectivity, payments, maps, trains and food.</p>
+
+        <p>Navigating China as a traveller can feel daunting: the Great Firewall, a near-cashless economy, and a language barrier. Having the right setup on your phone before you land is the difference between a stressful first day and a smooth trip.</p>
+
+        <h2>Connectivity &amp; internet (set up before landing)</h2>
+        <p class="note">Regular access to Western apps — Google (Search, Gmail, Maps), WhatsApp, Instagram, Facebook, X and YouTube — is blocked, so this is the section to sort before you fly.</p>
+        <ul>
+            <li><span class="app-name">LetsVPN</span> — a popular option with travellers. Download and <em>test</em> it before arriving, since VPN download sites are blocked once you are inside: <a href="https://github.com/LetsgoNetwork/LetsGo_EN_1/blob/main/README.md">download link</a> or <a href="https://github.com/LetsgoNetwork/LetsGo_EN_2/blob/main/README.md">alternate link</a>. After installing, enter my ID <strong>474105005</strong> for an extra 3-day membership. Honest note: it did not work well for me and I was not satisfied, so line up other options too. VPN use in China is regulated, so check the current rules yourself.</li>
+            <li><span class="app-name">NordVPN</span> — I tried it too, and it did not work for me.</li>
+            <li><span class="app-name">Nomad</span> — travel eSIM. A roaming data eSIM keeps you online without swapping physical SIM cards, and roaming data often sidesteps the local network restrictions on its own.</li>
+            <li><span class="app-name">Nihao Mobile &amp; Smartcom Travel</span> — English-friendly Chinese SIM services, useful when you need a local phone number to register for domestic apps.</li>
+        </ul>
+
+        <h2>Payments &amp; money</h2>
+        <p class="note">China is almost entirely cashless, and physical foreign credit cards are rarely accepted at local shops or street vendors.</p>
+        <ul>
+            <li><span class="app-name">Alipay (支付宝)</span> — the number one payment app for international travellers. Link an international Visa or Mastercard; registering your passport identity in advance avoids security flags on your first purchases.</li>
+            <li><span class="app-name">Revolut</span> — connecting a Revolut card to Alipay worked like a charm for me. It is a handy card to carry for the trip anyway; there is a <a href="#referral-codes">referral link below</a>.</li>
+            <li><span class="app-name">Alipay Transport Code (支付宝乘车码)</span> — built into Alipay. Generates a QR pass to scan at subway turnstiles and bus gates in major cities such as Shanghai, Beijing and Hangzhou.</li>
+            <li>Carry a little cash anyway — small vendors and emergencies still take RMB.</li>
+        </ul>
+
+        <h2>Navigation &amp; local transport</h2>
+        <ul>
+            <li><span class="app-name">Amap (高德地图)</span> — China's premier navigation app, with real-time walking, driving and public-transit directions far better than Western map apps. Google Maps does not work reliably in mainland China.</li>
+            <li><span class="app-name">MetroMan</span> — clean, offline subway maps and route planners in English for almost every Chinese city with a metro.</li>
+            <li><span class="app-name">Railway 12306 (中国铁路)</span> — the official China Railway app: schedules and high-speed rail tickets with no added booking fees. Your passport is your ticket at the gates.</li>
+            <li><span class="app-name">DiDi (滴滴)</span> — ride-hailing with an English interface; show the driver the destination in Chinese characters.</li>
+        </ul>
+
+        <h2>Bookings &amp; travel management</h2>
+        <ul>
+            <li><span class="app-name">Trip.com</span> — the global version of Ctrip, with a full English interface and foreign card support. Hotels, domestic flights, high-speed train tickets and attraction passes in one place.</li>
+        </ul>
+
+        <h2>Daily life, shopping &amp; food</h2>
+        <ul>
+            <li><span class="app-name">Meituan (美团)</span> — food delivery to your hotel, restaurant discounts, group-buy meal vouchers, and even pharmacy orders.</li>
+            <li><span class="app-name">Taobao (淘宝)</span> — China's mega e-commerce platform, handy for bargain shopping or ordering items to your accommodation on longer stays.</li>
+        </ul>
+
+        <h2>My visit in Shanghai</h2>
+        <p>If you have an afternoon in Shanghai, I'd suggest Shanghai Tower in Lujiazui. It is one of the tallest buildings in the world, and its "Top of Shanghai" observation deck on the 118th floor (around 546&nbsp;m) puts the whole city — the Bund, the Huangpu River and the sprawl beyond — in a single view. Go up an hour or so before sunset so you see the city in daylight and again once the lights come on, and book a timed ticket in advance.</p>
+        <p class="note">Pair it with a walk along the Bund or the ferry across the Huangpu — both are cheap, and both give you the tower from the outside.</p>
+
+        <h2>Quick tips</h2>
+        <ol class="tips">
+            <li><strong>Download VPNs early.</strong> You cannot download or update VPN apps once you are behind the Great Firewall.</li>
+            <li><strong>Verify payments beforehand.</strong> Register your identity (passport) and link your cards on Alipay before departure to prevent security flags during your first purchases.</li>
+            <li><strong>Keep offline translation handy.</strong> Download offline Chinese packs just in case you lose signal in remote areas or on the subway.</li>
+        </ol>
+
+        <h2 id="referral-codes">Referral codes</h2>
+        <p>If you are signing up for any of these anyway, using my link gives us both a bonus — at no extra cost to you.</p>
+        <ul class="referral-list">
+            <li>
+                <span class="referral-name">Nomad eSIM</span> —
+                <a class="referral-code" href="https://getnomadapp.go.link/universal-link?page=add_referral&amp;referral_code=IHNDZIZRDYLA&amp;adj_t=1r3ajgtz_1rqdaxgv_1ryt1wk1&amp;adj_fallback=https%3A%2F%2Fwww.getnomad.app%2Funiversal-link%3Fpage%3Dadd_referral%26referral_code%3DIHNDZIZRDYLA&amp;adj_redirect_macos=https%3A%2F%2Fwww.getnomad.app%2Funiversal-link%3Fpage%3Dadd_referral%26referral_code%3DIHNDZIZRDYLA&amp;adj_campaign=IHNDZIZRDYLA">IHNDZIZRDYLA</a>
+                <span class="referral-desc">USD 5 off Nomad eSIM data plans. Use the link, or enter the code <strong>IHNDZIZRDYLA</strong> at checkout.</span>
+            </li>
+            <li>
+                <span class="referral-name">Trip.com</span> —
+                <a class="referral-code" href="https://uk.trip.com/sale/4283/referee-pre-register-eu.html?locale=en-GB&amp;referCode=69YFH9">69YFH9</a>
+                <span class="referral-desc">We both save 4% on train tickets when you sign up through my link.</span>
+            </li>
+            <li>
+                <span class="referral-name">Revolut</span> —
+                <a class="referral-code" href="https://revolut.com/referral/?referral-code=georgiwq4!NOV1-26-AR-H2&amp;geo-redirect">georgiwq4</a>
+                <span class="referral-desc">Join me and over 80 million users who love Revolut — sign up with my link.</span>
+            </li>
+            <li>
+                <span class="referral-name">LetsVPN</span> —
+                <a class="referral-code" href="https://github.com/LetsgoNetwork/LetsGo_EN_1/blob/main/README.md">474105005</a>
+                <span class="referral-desc">Enter my friend ID after installing for an extra 3-day membership.</span>
+            </li>
+        </ul>
+
+        <footer>
+            <p>Notes as of November 2026 — rules and apps change, so double-check anything critical. Corrections welcome by <a href="mailto:georgios.a.bisbas@gmail.com">email</a>.</p>
+        </footer>
+    </div>
+</body>
+</html>
