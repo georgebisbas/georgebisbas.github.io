@@ -845,6 +845,90 @@ this page is a cycle count, a bandwidth, or a speedup.
   </div>
 </section>
 
+<!-- ============ 0b. OPTIMIZATION OWNERSHIP ============ -->
+<section id="optimization-map">
+  <div class="sec-head col">
+    <h2>Where the speed comes from: the optimization boundary</h2>
+    <p style="color:var(--ink-2)">
+      The most useful mental model is to separate <em>algorithm selection</em> from
+      <em>backend realization</em>. PyPTO sees the whole matmul and chooses how to decompose it;
+      PTOAS receives that decomposition and turns it into legal, scheduled device code. PTOAS is
+      important to performance, but it is not normally the place where the GEMM algorithm is
+      rediscovered.
+    </p>
+  </div>
+  <div class="note col">
+    <p class="eyebrow">The ownership map</p>
+    <table>
+      <thead><tr><th>Layer</th><th>Main performance decisions</th><th>What to look for here</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Tensor / block</strong></td>
+          <td>The programmer states the shape, precision, accumulation type and placement scope;
+            <code>CORE_GROUP</code>, SPMD and optional split-K express the amount of parallel work.</td>
+          <td><code>pl.matmul</code>, <code>out_dtype=FP32</code>, <code>pl.at</code> and, for variants,
+            <code>pl.spmd</code> or <code>pl.parallel</code>.</td>
+        </tr>
+        <tr>
+          <td><strong>PyPTO tile compiler</strong></td>
+          <td><code>AutoTileMatmulL0</code> chooses legal M/N/K tile sizes, stationarity and a
+            pipeline shape. Later passes lower that plan into memory spaces, ping-pong slots,
+            addresses and the loop nest.</td>
+          <td><code>tile.extract</code>, <code>pl.pipeline</code>, <code>tile.matmul_acc</code>,
+            <code>InferTileMemorySpace</code>, <code>LowerPipelineLoops</code> and the allocation map.</td>
+        </tr>
+        <tr>
+          <td><strong>PTOAS</strong></td>
+          <td>It legalizes and lowers the already-formed tile program: it infers/validates layouts,
+            plans local-memory offsets, lowers <code>pto.tmatmul</code> to native calls, and inserts
+            the waits, flags and barriers needed by the resulting instruction order. Its A5 vector
+            scheduler and optional fusion are backend-specific features, not the Cube GEMM tiler.</td>
+          <td>The <code>.pto</code> module, <code>TMATMUL</code>/<code>TMATMUL_ACC</code>,
+            <code>TLOAD</code>/<code>TSTORE</code>, addresses and synchronization in the emitted C++.</td>
+        </tr>
+        <tr>
+          <td><strong>simpler runtime</strong></td>
+          <td>It builds and dispatches the task graph, transfers arguments and coordinates the host
+            side with the compiled AI Core kernel. This is where inter-task dependencies live, not
+            where the inner Cube tile is selected.</td>
+          <td>The orchestration library, dependency edges and the final task launch.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="grid-2 col" style="margin-top:22px">
+    <div class="note">
+      <p class="eyebrow">A useful boundary to remember</p>
+      <p style="color:var(--ink-2)">
+        For this Cube matmul, the consequential GEMM choices are made before PTOAS: whether K is
+        tiled inside a task, whether work is split across cores, which operands stay resident, and
+        whether a second buffer is useful. PTOAS can make that plan fast and correct, but it usually
+        does not change a 128&times;128&times;128 plan into a different M/N/K decomposition. Also, a
+        pipeline in the IR is not by itself proof of double buffering: the target and memory planner
+        decide which buffers actually receive multiple slots.
+      </p>
+    </div>
+    <div class="note">
+      <p class="eyebrow">How to read a new compile</p>
+      <ol style="color:var(--ink-2)">
+        <li>After <code>AutoTileMatmulL0</code>, find the K-loop and its extracts/accumulates.</li>
+        <li>In PTO MLIR, check the <code>mat</code>, <code>left</code>, <code>right</code> and
+          <code>acc</code> spaces, then the <code>pto.tmatmul</code> operands.</li>
+        <li>In C++, follow <code>TLOAD</code> &rarr; <code>TMATMUL[_ACC]</code> &rarr;
+          <code>TSTORE</code>, with flags and waits showing the overlap.</li>
+        <li>When debugging, set <code>PYPTO_LOG_LEVEL=debug</code>: successful compilation logs the
+          absolute artifact directory, so these intermediate files are easy to find.</li>
+      </ol>
+    </div>
+  </div>
+  <p class="caption col" style="margin-top:14px">
+    One extra optimization is worth keeping in mind for chained matmuls: when an intermediate cast
+    can be folded into FixPipe, PyPTO can avoid a Vector round-trip. That transformation is
+    shape- and dtype-dependent, so it is evidence to look for in the generated IR, not a promise
+    that every matmul gets it.
+  </p>
+</section>
+
 <!-- ============ 1. PIPELINE MAP ============ -->
 <section id="pipeline">
   <div class="sec-head col">
@@ -2707,6 +2791,293 @@ prev=; <span class="k">for</span> f <span class="k">in</span> $(ls | sort); <spa
     P8:"Runtime seam & codegen prep"
   };
   var PASSES = [["01","InlineFunctions","P1","Splices every Inline-typed function body into its call sites, so no inline helper survives.","No textual change in this compile."],["02","UnrollLoops","P1","Fully unrolls pl.unroll() loops at compile time, substituting each constant iteration value.","No textual change in this compile."],["03","CtrlFlowTransform","P1","Rewrites break/continue into structured if/else and while loops, because PTO emits structured control flow.","No textual change in this compile."],["04","ConvertToSSA","P1","Converts to static single assignment: renames variables and adds loop-carried and branch-merged values.","Changed the IR in this compile; the adjacent diff is the source of truth."],["05","Simplify","P8","The final arithmetic and shape folding pass.","No textual change in this compile."],["06","NormalizeStmtStructure","P1","Canonicalizes statement nesting so later passes see one uniform shape.","No textual change in this compile."],["07","FlattenCallExpr","P1","Hoists nested calls into temporaries, giving three-address form.","Changed the IR in this compile; the adjacent diff is the source of truth."],["08","OutlineHierarchyScopes","P2","Outlines pl.at(level, role) hierarchy scopes into functions carrying level/role metadata.","No textual change in this compile."],["09","OutlineGraphScopes","P2","Outlines pl.graph regions into Graph functions.","No textual change in this compile."],["10","OutlineIncoreScopes","P2","Extracts each InCore scope into its own device function and replaces the scope with a call from the orchestrator.","Changed the IR in this compile; the adjacent diff is the source of truth."],["11","OutlineClusterScopes","P2","Outlines cluster scopes (co-scheduled cube + vector) into Group functions and SPMD scopes into Spmd functions.","No textual change in this compile."],["12","DeduplicateOutlinedKernels","P2","Reuses a closed outlined kernel — or an exclusive Group bundle — instead of serialising an identical one; every dispatch is preserved.","No textual change in this compile."],["13","ConvertTensorToTileOps","P3","Lowers tensor ops inside device functions to tile ops on explicit on-chip tiles.","Changed the IR in this compile; the adjacent diff is the source of truth."],["14","OptimizeOrchTensors","P3","Reuses orchestration-side temporary tensors across iterations and makes local windows explicit.","No textual change in this compile."],["15","LowerCompositeOps","P4","Decomposes composite ops (sin/cos, select, MX quantization, collectives) into primitive tile ops.","No textual change in this compile."],["16","FlattenTileNdTo2D","P4","Merges all tile dimensions but the last, since the tile ISA only takes 2D tiles.","No textual change in this compile."],["17","BlockNzTensorViews","P4","Rewrites tensors declared pl.NZ into the ISA's blocked rank-5 form and retargets their loads.","No textual change in this compile."],["18","BlockMxScaleTensorViews","P4","Rewrites MX block-scale tensors into their packed A5 layout.","Changed the IR in this compile; the adjacent diff is the source of truth."],["19","LegalizeTileCast","P4","Expands a cast with no single native instruction into the shortest chain of native casts.","No textual change in this compile."],["20","AutoTileMatmulL0","P4","Picks an (m, n, k) that fits L0A/L0B/L0C and rewrites one oversized matmul into a pipelined loop of L0 extracts and matmul_acc.","Changed the IR in this compile; the adjacent diff is the source of truth."],["21","CanonicalizeTileSlice","P4","Lowers tile.slice to canonical tile.extract so data movement goes through the extract instruction.","No textual change in this compile."],["22","InferTileMemorySpace","P4","Infers the memory space of every tile, inserts moves where producer and consumer disagree, keeps loop-invariant Mat operands resident.","Changed the IR in this compile; the adjacent diff is the source of truth."],["23","InsertMxScaleAddr","P4","Inserts scale-address bindings before MX matmuls.","No textual change in this compile."],["24","ResolveBackendOpLayouts","P4","Repairs the tile layouts elementwise ops require.","No textual change in this compile."],["25","LowerAutoVectorSplit","P5","Turns an automatic pl.split mixed kernel into the explicit two-vector-lane form.","No textual change in this compile."],["26","ExpandMixedKernel","P5","Splits a kernel that uses both cube and vector into an AIC and an AIV kernel talking through tpush/tpop; a pure one just gets retyped.","Changed the IR in this compile; the adjacent diff is the source of truth."],["27","InjectGMPipeBuffer","P5","Adds a global-memory workspace parameter for cross-core pipes on backends that route them through GM.","No textual change in this compile."],["28","SplitVectorKernel","P5","Stamps split attributes on split AIV kernels.","No textual change in this compile."],["29","StampTfreeSplit","P5","Copies each cross-core tpop's split and pipe id onto its matching tfree.","No textual change in this compile."],["30","NormalizeReturnOrder","P5","Reorders device-function returns so return[i] matches the i-th output parameter.","No textual change in this compile."],["31","SkewCrossCorePipeline","P5","Software-pipelines cube↔vector loops so the two cores overlap.","No textual change in this compile."],["32","LowerPipelineToSlots","P6","Multi-buffers a pipelined loop by rotating one body through slots of one allocation.","No textual change in this compile."],["33","LowerPipelineLoops","P6","Replicates a stage=F pipelined body F times per outer iteration, so consecutive iterations use different buffers.","Changed the IR in this compile; the adjacent diff is the source of truth."],["34","CanonicalizeIOOrder","P6","Inside pipelined bodies, reorders statements to scalar → load → compute → store so data movement runs ahead of compute.","Changed the IR in this compile; the adjacent diff is the source of truth."],["35","MaterializeTensorStrides","P7","Fills in packed canonical strides for every tensor view.","No textual change in this compile."],["36","MaterializeSimtOutputs","P7","Runs the current MaterializeSimtOutputs transformation in the default PyPTO pipeline.","No textual change in this compile."],["37","SpecializeSimtHelpers","P7","Runs the current SpecializeSimtHelpers transformation in the default PyPTO pipeline.","No textual change in this compile."],["38","InitMemRef","P7","Attaches a memory reference to every value and emits allocations with no address yet.","Changed the IR in this compile; the adjacent diff is the source of truth."],["39","SelectBufferIRFunctions","P7","Records which whole kernels the Buffer IR migration may rewrite; only selected kernels get Buffer-specific rewrites, the rest keep the Tile path.","Changed the IR in this compile; the adjacent diff is the source of truth."],["40","MaterializeSemanticAliases","P7","Forces values that must share storage (loop-carried values, in-place ops) onto one allocation.","No textual change in this compile."],["41","IRVerifier","P7","Runs the current IRVerifier transformation in the default PyPTO pipeline.","No textual change in this compile."],["42","MemoryReuse","P7","Merges same-space buffers whose lifetimes don't overlap, never merging two stages of one pipeline.","Changed the IR in this compile; the adjacent diff is the source of truth."],["43","VerifyTileStorage","P7","Checks that every tile's storage is legal before addresses are assigned (produces TileStorageLegalized).","No textual change in this compile."],["44","AllocateMemoryAddr","P7","Assigns concrete byte offsets inside each on-chip buffer and checks capacity.","Changed the IR in this compile; the adjacent diff is the source of truth."],["45","VerifyTileStorageAllocated","P7","Checks the allocated storage plan right after addresses are assigned (produces TileStorageAllocated).","No textual change in this compile."],["46","FoldNoOpReshape","P7","Folds reshapes that change neither shape nor storage.","No textual change in this compile."],["47","FuseCreateAssembleToSlice","P8","Fuses create + assemble pairs in the orchestrator into a view, removing a staging buffer.","No textual change in this compile."],["48","LowerL2TensorCollectives","P8","Rewrites a chip-level collective into a local vector task.","No textual change in this compile."],["49","LegalizeSpmdLaunches","P8","Proves core_num ≥ 1 where it can, and otherwise guards the launch with if core_num > 0, so a zero-block SPMD launch cannot raise an AICPU exception.","No textual change in this compile."],["50","DeriveCallDirections","P8","Derives each kernel argument's direction (input, output, in-out, existing output) for the runtime.","Changed the IR in this compile; the adjacent diff is the source of truth."],["51","AutoDeriveTaskDependencies","P8","When enabled, derives conservative task-to-task edges inside automatic runtime scopes.","No textual change in this compile."],["52","ExpandManualPhaseFence","P8","Compresses full-array task-id dependencies in manual scopes.","No textual change in this compile."],["53","SynthesizeAllReduceSignals","P8","Adds the explicit signal buffer to host-level allreduce calls.","No textual change in this compile."],["54","MaterializeCommDomainScopes","P8","Wraps host-side communication buffer chains in scopes with runtime sizing metadata.","No textual change in this compile."],["55","LowerHostTensorCollectives","P8","Lowers host-level allreduce/barrier/broadcast into per-device fan-out.","No textual change in this compile."],["56","MaterializeDistTensorCtx","P8","Adds a communication-context parameter for each distributed tensor parameter.","No textual change in this compile."],["57","Simplify","P8","The final arithmetic and shape folding pass.","Changed the IR in this compile; the adjacent diff is the source of truth."],["58","LegalizeGraphBoundary","P8","Hoists boundary values out of Graph functions to their call sites.","No textual change in this compile."],["59","MaterializeRuntimeScopes","P8","Inserts explicit runtime scopes in the orchestrator, so codegen emits one SIMPLER_SCOPE per scope.","Changed the IR in this compile; the adjacent diff is the source of truth."],["60","ClassifyIterArgCarry","P8","Classifies orchestrator loop-carried values and sizes task-id arrays.","No textual change in this compile."],["61","InsertCommFence","P8","Inserts a cache-invalidate and memory fence between a write and the signal that publishes it.","No textual change in this compile."],["62","MaterializeValidShapeSymbols","P8","Turns dynamic valid-shape symbols into scalar parameters the caller passes in.","No textual change in this compile."],["63","IRVerifier","P7","Runs the current IRVerifier transformation in the default PyPTO pipeline.","No textual change in this compile."],["64","LowerTileToBuffer","P8","Converts the selected kernels from planned Tile storage to explicit Buffer operations — the final device representation PTO codegen consumes.","Changed the IR in this compile; the adjacent diff is the source of truth."]];
+  var DIFF_BY_N = {};
+  SPINE_DIFFS.forEach(function (d) { DIFF_BY_N[d.n] = d; });
+  var PASS_BY_N = {};
+  PASSES.forEach(function (p) { PASS_BY_N[p[0]] = p; });
+
+  var pdSteps = [{ n:"00", name:"input program", add:null, del:null, hunks:[FRONTEND.map(function (l) { return ["ctx", l]; })] }]
+    .concat(SPINE_DIFFS.filter(function (d) { return d.add + d.del > 0; }));
+  var pdIndexByN = {};
+  pdSteps.forEach(function (s, i) { pdIndexByN[s.n] = i; });
+
+  var DL_PAD = '<span class="dl pad"></span>';
+  function diffLine(kind, text) { return '<span class="dl ' + kind + '">' + esc(text) + '</span>'; }
+  // ---- intra-line diff: which tokens of a modified line actually changed ----
+  // Tokenize into words / whitespace runs / single punctuation, LCS the two token lists, then trim each
+  // changed segment's common prefix and suffix so a one-token edit does not light up a whole expression.
+  function ilTokens(s) { return s.match(/\s+|[A-Za-z0-9_$]+|[^\sA-Za-z0-9_$]/g) || []; }
+  function ilPush(list, text, chg) {
+    if (!text) return;
+    var last = list[list.length - 1];
+    if (last && last[1] === chg) last[0] += text; else list.push([text, chg]);
+  }
+  function ilSpans(a, b) {
+    var ta = ilTokens(a), tb = ilTokens(b), n = ta.length, m = tb.length, i, j, c, segs, cur;
+    if (!n || !m || n + m > 900 || a.length + b.length > 4000) return { a: [[a, 1]], b: [[b, 1]] };
+    c = [];
+    for (i = 0; i <= n; i++) c.push(new Array(m + 1).fill(0));
+    for (i = n - 1; i >= 0; i--) for (j = m - 1; j >= 0; j--) {
+      c[i][j] = ta[i] === tb[j] ? c[i + 1][j + 1] + 1 : Math.max(c[i + 1][j], c[i][j + 1]);
+    }
+    // Too little in common (a replace run pairs lines by position, not by content): keep the plain
+    // line tint rather than lighting up half of both lines.
+    if (c[0][0] * 2 < (n + m) * 0.6) return { a: [[a, 0]], b: [[b, 0]] };
+    segs = []; cur = null; i = 0; j = 0;
+    while (i < n || j < m) {
+      if (i < n && j < m && ta[i] === tb[j]) { cur = null; segs.push([ta[i], ta[i]]); i++; j++; continue; }
+      if (!cur) { cur = ["", ""]; segs.push(cur); }
+      if (j >= m || (i < n && c[i + 1][j] >= c[i][j + 1])) cur[0] += ta[i++]; else cur[1] += tb[j++];
+    }
+    var outA = [], outB = [];
+    segs.forEach(function (sg) {
+      var X = sg[0], Y = sg[1], p = 0, s = 0, lim;
+      if (!X || !Y || X === Y) { ilPush(outA, X, X === Y ? 0 : 1); ilPush(outB, Y, X === Y ? 0 : 1); return; }
+      lim = Math.min(X.length, Y.length);
+      while (p < lim && X[p] === Y[p]) p++;
+      while (s < lim - p && X[X.length - 1 - s] === Y[Y.length - 1 - s]) s++;
+      ilPush(outA, X.slice(0, p), 0); ilPush(outA, X.slice(p, X.length - s), 1); ilPush(outA, X.slice(X.length - s), 0);
+      ilPush(outB, Y.slice(0, p), 0); ilPush(outB, Y.slice(p, Y.length - s), 1); ilPush(outB, Y.slice(Y.length - s), 0);
+    });
+    return { a: outA, b: outB };
+  }
+  function diffSpans(kind, spans) {
+    return '<span class="dl ' + kind + '">' + spans.map(function (p) {
+      return p[1] ? '<span class="il">' + esc(p[0]) + "</span>" : esc(p[0]);
+    }).join("") + "</span>";
+  }
+  // Whole-file before | after as a grid of row pairs: one left cell plus one right cell per diff
+  // row makes both sides share a height, so a wrapped line on one side cannot drift the columns
+  // apart. Pads keep the pairing intact across uneven replace/insert/delete runs.
+  function diffFull(s) {
+    var rows = ['<p class="diff-col-lbl">before</p>', '<p class="diff-col-lbl">after</p>'], k;
+    s.ops.forEach(function (o) {
+      var tag = o[0], i1 = o[1], i2 = o[2], j1 = o[3], j2 = o[4], ln, rn, m;
+      if (tag === "e") {
+        for (k = 0; k < i2 - i1; k++) {
+          rows.push(diffLine("ctx", s.before[i1 + k]), diffLine("ctx", s.after[j1 + k]));
+        }
+        return;
+      }
+      ln = i2 - i1; rn = j2 - j1; m = Math.max(ln, rn);
+      for (k = 0; k < m; k++) {
+        var lb = k < ln ? s.before[i1 + k] : null, rb = k < rn ? s.after[j1 + k] : null, sp;
+        if (lb !== null && rb !== null && !s.noIl) {  // a paired modification: shade the differing tokens
+          sp = ilSpans(lb, rb);
+          rows.push(diffSpans("del", sp.a), diffSpans("add", sp.b));
+        } else {
+          rows.push(lb !== null ? diffLine("del", lb) : DL_PAD,
+                    rb !== null ? diffLine("add", rb) : DL_PAD);
+        }
+      }
+    });
+    return '<div class="diff-split">' + rows.join("") + "</div>";
+  }
+  // Open a rendered diff at its first change rather than at line 1 of the file.
+  function focusFirstChange(root) {
+    var el = root.querySelector(".dl.add, .dl.del"), panel = root.querySelector(".diff-split");
+    if (el && panel) {
+      var delta = el.getBoundingClientRect().top - panel.getBoundingClientRect().top;
+      panel.scrollTop = Math.max(0, panel.scrollTop + delta - 24);
+    }
+  }
+  function pdRender(i, s) {
+    var h = '<span class="pnum">' + s.n + '</span><span class="pname">' + esc(s.name) + '</span>';
+    if (s.add === null) h += '<span class="pcount">what the passes start from</span>';
+    else h += '<span class="pcount"><span class="pa">+' + s.add + '</span> &nbsp;<span class="pd">&minus;' + s.del + '</span></span>';
+    $("pd-head").innerHTML = h;
+    var p = PASS_BY_N[s.n];
+    if (p) {
+      $("pd-what").innerHTML = "<b>What it does.</b> " + esc(p[3]) + ' <span class="tier" style="display:inline">(' + esc(PHASES[p[2]]) + ")</span>";
+      $("pd-here").innerHTML = "<b>Here.</b> " + esc(p[4]);
+      $("pd-here").hidden = false;
+    } else {
+      $("pd-what").innerHTML = "<b>The parsed program.</b> The @pl.jit function after parsing and specialization on the call's shapes: tensor operations only, no tiles, no memory spaces. The orchestration function and the device region are still one function.";
+      $("pd-here").hidden = true;
+    }
+    if (s.add === null) {
+      $("pd-diff").innerHTML = '<div class="difflines">' + s.hunks[0].map(function (d) { return winRow(d[1], "ctx"); }).join("") + "</div>";
+    } else {
+      $("pd-diff").innerHTML = '<div class="pd-hunk">' + diffFull(s) + "</div>";
+      focusFirstChange($("pd-diff"));
+    }
+  }
+  var pdPlayer = btnPlayer("pd", pdSteps, "PASS", pdRender, 3600);
+
+  function piRender() {
+    var body = $("pi-body"), html = "", lastPh = "";
+    PASSES.forEach(function (p) {
+      if (p[2] !== lastPh) {
+        lastPh = p[2];
+        html += '<tr class="pi-phase"><td colspan="5">' + esc(PHASES[p[2]]) + "</td></tr>";
+      }
+      var d = DIFF_BY_N[p[0]], chg = d && (d.add + d.del > 0);
+      html += '<tr class="pi-row' + (chg ? " chg" : "") + '" data-n="' + p[0] + '">' +
+        "<td>" + p[0] + '</td><td class="pn">' + esc(p[1]) + "</td><td>" + esc(p[3]) + '</td><td class="here">' + esc(p[4]) + "</td><td>" +
+        (chg ? '<button type="button" class="jump" data-n="' + p[0] + '">diff <span class="chip-chg"><span class="pa">+' + d.add + '</span> <span class="pd">&minus;' + d.del + "</span></span></button>"
+             : '<span class="chip-noop">no-op</span>') + "</td></tr>";
+    });
+    body.innerHTML = html;
+    Array.prototype.forEach.call(body.querySelectorAll("tr.pi-row.chg"), function (tr) {
+      tr.addEventListener("click", function () {
+        var n = tr.getAttribute("data-n");
+        pdPlayer.stop(); pdPlayer.render(pdIndexByN[n]);
+        $("pd-player").scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+  }
+  piRender();
+  $("pi-all").addEventListener("click", function () {
+    this.setAttribute("aria-pressed", "true"); $("pi-chg").setAttribute("aria-pressed", "false");
+    $("pi-wrap").classList.remove("hidden-noop");
+  });
+  $("pi-chg").addEventListener("click", function () {
+    this.setAttribute("aria-pressed", "true"); $("pi-all").setAttribute("aria-pressed", "false");
+    $("pi-wrap").classList.add("hidden-noop");
+  });
+
+  // ============================================================
+  // PTOAS per-pass stepper: the same diff engine over the assembler's own dumps
+  // ============================================================
+  var ptIndexByN = {};
+  PTOAS_STEPS.forEach(function (s, i) { ptIndexByN[s.n] = i; });
+  function ptRender(i, s) {
+    var h = '<span class="pnum">' + s.n + '</span><span class="pname">' + esc(s.name) + '</span>';
+    if (s.add === null) h += '<span class="pcount">what the passes start from</span>';
+    else h += '<span class="pcount">' + esc(s.view) + ' \u00a0<span class="pa">+' + s.add +
+      '</span> \u00a0<span class="pd">&minus;' + s.del + '</span></span>';
+    $("pt-head").innerHTML = h;
+    $("pt-what").innerHTML = (s.add === null ? "<b>Not a pass.</b> " : "<b>What it does.</b> ") + esc(s.what);
+    $("pt-here").innerHTML = "<b>Here.</b> " + esc(s.here);
+    if (s.add === null) {
+      $("pt-diff").innerHTML = '<div class="difflines">' + s.hunks[0].map(function (d) {
+        return winRow(d[1], "ctx");
+      }).join("") + "</div>";
+    } else {
+      $("pt-diff").innerHTML = '<div class="pd-hunk">' + diffFull(s) + "</div>";
+      focusFirstChange($("pt-diff"));
+    }
+  }
+  var ptPlayer = btnPlayer("pt", PTOAS_STEPS, "STEP", ptRender, 4200);
+
+  // ---- emission stages: the code behind "Where the C++ text comes from" (stage strings carry HTML) ----
+  function emRender(i, s) {
+    $("em-head").innerHTML = '<span class="pnum">' + s.n + '</span><span class="pname">' + s.name +
+      '</span><span class="pcount">' + (s.mode === "window" ? esc(s.origin)
+        : s.mode === "stacked" ? s.pcount
+          : '+' + s.add + ' \u00a0&minus;' + s.del) + '</span>';
+    $("em-what").innerHTML = "<b>What it is.</b> " + s.what;
+    $("em-here").innerHTML = "<b>Here.</b> " + s.here;
+    if (s.mode === "stacked") {
+      // Both sides complete, one under the other, no line pairing: the two panes share almost no row.
+      $("em-diff").innerHTML = '<div class="diff-split stacked">' +
+        '<p class="diff-col-lbl">' + s.bl + '</p>' +
+        s.before.map(function (t) { return winRow(t, "ctx"); }).join("") +
+        '<p class="diff-col-lbl">' + s.al + '</p>' +
+        s.after.map(function (t) { return winRow(t, "ctx"); }).join("") +
+        '</div>';
+    } else if (s.mode === "window") {
+      $("em-diff").innerHTML = '<div class="difflines' + (s.gutter ? " gutter" : "") + '">' +
+        s.hunks[0].map(function (d) {
+          return s.gutter ? winRow(d[1], "ctx" + (d[3] ? " mk" : ""), d[2] || "")
+                          : winRow(d[1], "ctx");
+        }).join("") + "</div>";
+    } else {
+      $("em-diff").innerHTML = '<div class="pd-hunk">' + diffFull(s) + "</div>";
+      focusFirstChange($("em-diff"));
+    }
+  }
+  var emPlayer = btnPlayer("em", EMISSION_STEPS, "STAGE", emRender, 5200);
+  Array.prototype.forEach.call($("pt-wrap").querySelectorAll("tr.pi-row.chg"), function (tr) {
+    tr.addEventListener("click", function () {
+      ptPlayer.stop();
+      ptPlayer.render(ptIndexByN[tr.getAttribute("data-pt")]);
+      $("pt-player").scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+  $("pt-all").addEventListener("click", function () {
+    this.setAttribute("aria-pressed", "true"); $("pt-chg").setAttribute("aria-pressed", "false");
+    $("pt-wrap").classList.remove("hidden-noop");
+  });
+  $("pt-chg").addEventListener("click", function () {
+    this.setAttribute("aria-pressed", "true"); $("pt-all").setAttribute("aria-pressed", "false");
+    $("pt-wrap").classList.add("hidden-noop");
+  });
+
+  // ============================================================
+  // L0 residency explorer
+  // ============================================================
+  var RX = { m:128, n:128, k:512, db:2 };
+  var RX_ROWS = [
+    { key:"L0A", lbl:"L0A: A tiles", limit:65536, f:function () { return RX.m * RX.k * 2 * RX.db; }, expr:function () { return "m·k·2 B" + (RX.db > 1 ? " × 2" : ""); } },
+    { key:"L0B", lbl:"L0B: B tiles", limit:65536, f:function () { return RX.k * RX.n * 2 * RX.db; }, expr:function () { return "k·n·2 B" + (RX.db > 1 ? " × 2" : ""); } },
+    { key:"L0C", lbl:"L0C: accumulator", limit:131072, f:function () { return RX.m * RX.n * 4; }, expr:function () { return "m·n·4 B"; } }
+  ];
+  function rxSync() {
+    ["m","n","k"].forEach(function (key) { $("rx-" + key).value = RX[key]; $("rx-" + key + "-v").textContent = RX[key]; });
+    $("rx-db2").setAttribute("aria-pressed", RX.db === 2 ? "true" : "false");
+    $("rx-db1").setAttribute("aria-pressed", RX.db === 1 ? "true" : "false");
+  }
+  function rxRender() {
+    var g = $("rx-bars"); g.textContent = "";
+    var over = [];
+    RX_ROWS.forEach(function (row, i) {
+      var y = 30 + i * 60, bytes = row.f(), frac = bytes / row.limit;
+      if (frac > 1) over.push(row.key);
+      g.appendChild(mk("text", { x:0, y:y - 8, class:"rx-lbl" }, row.lbl));
+      g.appendChild(mk("text", { x:596, y:y - 8, "text-anchor":"end", class:"rx-val" },
+        row.expr() + " = " + bytes.toLocaleString("en-US") + " B of " + kib(row.limit) + " · " + Math.round(frac * 1000) / 10 + "%"));
+      g.appendChild(mk("rect", { x:108, y:y, width:488, height:30, rx:3, class:"rx-bar-bg" }));
+      g.appendChild(mk("rect", { x:108, y:y, width:Math.max(2, Math.min(1, frac) * 488), height:30, rx:3, class:"rx-bar " + (frac > 1 ? "over" : "ok") }));
+      g.appendChild(mk("line", { x1:596, y1:y - 3, x2:596, y2:y + 33, class:"rx-lim" }));
+    });
+    var v = $("rx-verdict"), pick = RX.m === 128 && RX.n === 128 && RX.k === 128 && RX.db === 2;
+    if (over.length) {
+      v.classList.add("over");
+      v.innerHTML = "<b>" + over.join(" and ") + (over.length === 1 ? " overflows." : " overflow.") + "</b> " +
+        (RX.m === 128 && RX.n === 128 && RX.k === 512 ? "This is the matmul as written: it cannot run as one L0 tile, so pass 20 must split it." : "Not a legal L0 tile.");
+    } else {
+      v.classList.remove("over");
+      v.innerHTML = pick ? "<b>Fits, with room for the second copy.</b> This is the compiler's pick: L0A and L0B exactly full, L0C half full."
+        : (RX.db === 2 ? "<b>Fits, double-buffered.</b> A legal candidate; the cost model decides between the legal ones."
+                       : "<b>Fits as one buffer.</b> Legal only without ping-pong, which the output-stationary plan always wants for streamed operands.");
+    }
+  }
+  ["m","n","k"].forEach(function (key) {
+    $("rx-" + key).addEventListener("input", function () { RX[key] = parseInt(this.value, 10); $("rx-" + key + "-v").textContent = RX[key]; rxRender(); });
+  });
+  $("rx-db2").addEventListener("click", function () { RX.db = 2; rxSync(); rxRender(); });
+  $("rx-db1").addEventListener("click", function () { RX.db = 1; rxSync(); rxRender(); });
+  $("rx-asis").addEventListener("click", function () { RX.m = 128; RX.n = 128; RX.k = 512; RX.db = 2; rxSync(); rxRender(); });
+  $("rx-pick").addEventListener("click", function () { RX.m = 128; RX.n = 128; RX.k = 128; RX.db = 2; rxSync(); rxRender(); });
+  rxSync(); rxRender();
+
+  // ============================================================
+  // Address × lifetime memory map (from AllocateMemoryAddr, pass 41)
+  // ============================================================
+  var MM_SPACES = [
+    { key:"mat", name:"Mat (L1)", limit:524288 }, { key:"left", name:"Left (L0A)", limit:65536 },
+    { key:"right", name:"Right (L0B)", limit:65536 }, { key:"acc", name:"Acc (L0C)", limit:131072 }
+  ];
+  var MM_ROWS = ["load A → Mat", "load B → Mat", "extract ping", "extract pong", "matmul ping", "matmul pong", "store c"];
+  var MM_IR = [
+    "a_mat = tile.load(a, …, Mat)\n    # mem_mat_3 @ 0, 128 KiB",
+    "b_mat = tile.load(b, …, Mat)\n    # mem_mat_4 @ 131072, 128 KiB",
+    "a0 = tile.extract(…, Left)   # ping\nb0 = tile.extract(…, Right)\n    # mem_left_6, mem_right_7 @ 0, 32 KiB each",
+    "a1 = tile.extract(…, Left)   # pong\nb1 = tile.extract(…, Right)\n    # mem_left_8, mem_right_9 @ 32768, 32 KiB each",
+    "acc = tile.matmul_acc(acc, a0, b0, ko == 0)\n    # mem_acc_5 @ 0, 64 KiB",
+    "acc = tile.matmul_acc(acc, a1, b1, …)\n    # same Acc tile",
+    "c = tile.store(acc, [0, 0], c)\n    # → DDR"
+  ];
+  var MM_BLOCKS = [
+    { sp:"mat", name:"A", off:0, size:131072, r0:1, r1:6, ln:0 },
+    { sp:"mat", name:"B", off:131072, size:131072, r0:2, r1:6, ln:1 },
+    { sp:"left", name:"a0 ping", off:0, size:32768, r0:3, r1:5, ln:2 },
+    { sp:"right", name:"b0 ping", off:0, size:32768, r0:3, r1:5, ln:2 },
+    { sp:"left", name:"a1 pong", off:32768, size:32768, r0:4, r1:6, ln:3 },
+    { sp:"right", name:"b1 pong", off:32768, size:32768, r0:4, r1:6, ln:3 },
+    { sp:"acc", name:"acc", off:0, size:65536, r0:5, r1:7, ln:4 }
+  ];
   var MM_X0 = 100, MM_W = 188, MM_GAP = 200, MM_Y0 = 46, MM_RH = 34, NR = MM_ROWS.length;
   var MM_HINT = "Hover a block or a statement. The loop body runs twice (ko = 0, 256).";
   function mmBuild() {
